@@ -373,13 +373,13 @@ namespace Aptoma_Publication_Integrator
                 {
                     link = (string)reader.GetValue(0);
                 }
-                Console.WriteLine("Link for ordernumber " + orderNr + ": " + link);
+                //Console.WriteLine("Link for ordernumber " + orderNr + ": " + link);
 
                 con.Close();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Log("Unable to get link from database");
             }
 
             return link;
@@ -400,16 +400,16 @@ namespace Aptoma_Publication_Integrator
                 OracleDataReader reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    Console.WriteLine("Value in DB: " + (string)reader.GetValue(0));
+                    //Console.WriteLine("Value in DB: " + (string)reader.GetValue(0));
                     unpaid = true;
                 }
-                Console.WriteLine("Order unpaid: " + unpaid);
+                //Console.WriteLine("Order unpaid: " + unpaid);
 
                 con.Close();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Log("Unable to get paid status from database");
             }
 
             return unpaid;

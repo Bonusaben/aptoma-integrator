@@ -29,6 +29,7 @@ namespace Aptoma_Publication_Integrator
 
         static void LoadSettings()
         {
+            Program.Log("Loading settings");
             APIKEY = ConfigurationManager.AppSettings.Get("APIKEY");
 
             string _authUser = ConfigurationManager.AppSettings.Get("AUTHUSER");
@@ -43,6 +44,7 @@ namespace Aptoma_Publication_Integrator
         
         static bool GetToken()
         {
+            Program.Log("Getting token");
             if(token.Length == 0 || tokenExpiration < DateTime.Now)
             {
                 // Get new token
@@ -112,6 +114,8 @@ namespace Aptoma_Publication_Integrator
 
         static public string[] PostEdition(string json)
         {
+            Program.Log("Sending edition info to Aptoma");
+
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add("Authorization", "apikey "+APIKEY);
             headers.Add("Content-Type", "application/json");
@@ -123,6 +127,7 @@ namespace Aptoma_Publication_Integrator
 
         static public string[] PostPage(string json)
         {
+            Program.Log("Sending page info to Aptoma");
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add("Authorization", "apikey " + APIKEY);
             headers.Add("Content-Type", "application/json");
@@ -134,6 +139,8 @@ namespace Aptoma_Publication_Integrator
 
         static public string[] PostImage(string xml)
         {
+            Program.Log("Sending image info to Aptoma");
+
             Dictionary<string, string> headers = new Dictionary<string, string>();
             GetToken();
             headers.Add("jwt", token);
