@@ -108,8 +108,10 @@ namespace Aptoma_Publication_Integrator
                         File.Delete(file);
                     } catch(Exception ex)
                     {
-                        Console.WriteLine(ex);
+                        Log(ex.Message);
                     }
+
+                    Log(fileName + " done.");
                     
                 }
 
