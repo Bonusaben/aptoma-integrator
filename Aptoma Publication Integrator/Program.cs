@@ -152,7 +152,7 @@ namespace Aptoma_Publication_Integrator
             month = Int32.Parse(date.Substring(2, 2));
             day = Int32.Parse(date.Substring(0, 2));
             DateTime d = new DateTime(year, month, day);
-            date = d.ToString("yyyyMMddTHH:mm:ssZ");
+            date = d.ToString("yyyy-MM-ddTHH:mm:ssZ");
 
             // JSON
             jw.WriteStartObject();
@@ -235,44 +235,45 @@ namespace Aptoma_Publication_Integrator
             }
             reader.Close();
 
-
-            StringBuilder sb = new StringBuilder();
-            StringWriter sw = new StringWriter(sb);
-            JsonWriter jw = new JsonTextWriter(sw);
-
-            jw.WriteStartObject();
-            jw.WritePropertyName("data");
-            jw.WriteStartObject();
-
-            jw.WritePropertyName("product");
-            jw.WriteStartObject();
-            jw.WritePropertyName("id");
-            jw.WriteValue(lines[0].Split('\t')[3].Split('=')[1]);
-            jw.WriteEndObject();
-
-            jw.WritePropertyName("edition");
-            jw.WriteStartObject();
-            jw.WritePropertyName("publishDate");
-
+            // Get the date
             string date = lines[0].Split('\t')[0].Split('=')[1];
             int year = Int32.Parse(date.Substring(0, 4));
             int month = Int32.Parse(date.Substring(4, 2));
             int day = Int32.Parse(date.Substring(6, 2));
             DateTime d = new DateTime(year, month, day);
-            date = d.ToString("yyyyMMddTHH:mm:ssZ");
-            jw.WriteValue(date);
+            date = d.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+            // Start building the JSON
+            StringBuilder sb = new StringBuilder();
+            StringWriter sw = new StringWriter(sb);
+            JsonWriter jw = new JsonTextWriter(sw);
+
+            jw.WriteStartObject();
+
+            jw.WritePropertyName("data");
+            jw.WriteStartObject();
+
+            jw.WritePropertyName("edition");
+            jw.WriteStartObject();
 
             jw.WritePropertyName("zone");
             jw.WriteValue(lines[0].Split('\t')[2].Split('=')[1]);
+
+            jw.WritePropertyName("publishDate");
+            jw.WriteValue(date);
+
             jw.WritePropertyName("section");
             jw.WriteValue(pdlFile.Split('\\').Last().Substring(10, 1));
+
             jw.WritePropertyName("page");
             jw.WriteValue(Int32.Parse(pdlFile.Split('\\').Last().Substring(16, 3)));
-            jw.WritePropertyName("template");
+
+            jw.WritePropertyName("folio");
             jw.WriteValue(lines[0].Split('\t')[1].Split('=')[1]);
             jw.WriteEndObject();
 
-            lines.Remove(lines[0]); // Removes the page info, so we can loop through the ads
+            // Removes the page info, so we can loop through the ads
+            lines.Remove(lines[0]);
 
             jw.WritePropertyName("ads");
             jw.WriteStartArray();
@@ -292,7 +293,9 @@ namespace Aptoma_Publication_Integrator
                         jw.WritePropertyName("orderNumber");
                         jw.WriteValue(orderNr);
                         jw.WritePropertyName("file");
-                        jw.WriteValue(line.Split('\t')[6].Split('=')[1]);
+                        jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last());
+                        jw.WritePropertyName("imageFile");
+                        jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last().Split('.')[0]+".jpg");
                         jw.WritePropertyName("url");
                         jw.WriteValue(url);
                         jw.WritePropertyName("x");
@@ -337,8 +340,8 @@ namespace Aptoma_Publication_Integrator
                         jw.WriteValue(float.Parse(line.Split('\t')[2].Split('=')[1], CultureInfo.InvariantCulture));
                         jw.WritePropertyName("y2");
                         jw.WriteValue(float.Parse(line.Split('\t')[3].Split('=')[1], CultureInfo.InvariantCulture));
-                        jw.WritePropertyName("thickness");
-                        jw.WriteValue(line.Split('\t')[5].Split('=')[1].Split(',')[1]);
+                        //jw.WritePropertyName("thickness");
+                        //jw.WriteValue(line.Split('\t')[5].Split('=')[1].Split(',')[1]);
                         jw.WriteEndObject();
                     }
                 }
