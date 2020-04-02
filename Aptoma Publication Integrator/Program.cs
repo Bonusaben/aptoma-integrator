@@ -297,7 +297,7 @@ namespace Aptoma_Publication_Integrator
                         jw.WritePropertyName("orderNumber");
                         jw.WriteValue(orderNr);
                         jw.WritePropertyName("file");
-                        jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last());
+                        jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last().Replace(".EPS",".PDF"));
                         jw.WritePropertyName("imageFile");
                         jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last().Split('.')[0]+".jpg");
                         jw.WritePropertyName("url");
