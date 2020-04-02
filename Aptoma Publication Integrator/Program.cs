@@ -19,6 +19,7 @@ namespace Aptoma_Publication_Integrator
     {
         static string INPUTDIR;
         static string ERRORDIR;
+        static string LOGFILE;
 
         static Timer TIMER;
         static int TIMERINTERVAL = 5000; // Milliseconds
@@ -47,6 +48,7 @@ namespace Aptoma_Publication_Integrator
 
             INPUTDIR = appSettings.Get("INPUTDIR");
             ERRORDIR = appSettings.Get("ERRORDIR");
+            LOGFILE = appSettings.Get("LOGFILE");
             TIMERINTERVAL = Int32.Parse(appSettings.Get("TIMERINTERVAL"));
 
             DBURL = appSettings.Get("DBURL");
@@ -420,6 +422,13 @@ namespace Aptoma_Publication_Integrator
         public static void Log(string s)
         {
             Console.WriteLine(s);
+
+            if (LOGFILE != "")
+            {
+                StreamWriter sw = File.AppendText(LOGFILE);
+                sw.WriteLine(s);
+                sw.Close();
+            }
         }
 
         

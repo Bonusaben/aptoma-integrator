@@ -101,9 +101,10 @@ namespace Aptoma_Publication_Integrator
             result[0] = sCode;
             result[1] = response.Content;
 
-            if(sCode.Equals("Bad Request"))
-            {
-                Program.Log(result[0]);
+            Program.Log(result[0]);
+
+            if (sCode.Equals("Bad Request") || sCode.Equals("Forbidden"))
+            {                
                 Program.Log(result[1]);
             }
 
