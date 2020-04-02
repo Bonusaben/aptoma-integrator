@@ -5,47 +5,41 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
 using System.Xml;
+using System.Windows.Media.Imaging;
 
 namespace Aptoma_Publication_Integrator
 {
     static class ImageMeta
     {
-        static public string GetImageXml(string img)
+        public static string GetImageXml(string file)
         {
-            string b64 = Convert.ToBase64String(File.ReadAllBytes(img));
-
-            XmlDataDocument doc = new XmlDataDocument();
-
-            GetImageMeta(Image.FromFile(img));
-
             return "";
         }
 
-        static List<string> GetImageMeta(Image img)
+        static List<string> GetMeta(string file)
         {
-            List<string> meta = new List<string>();
+            List<string> metaList = new List<string>();
 
-            PropertyItem[] propItems = img.PropertyItems;
+            BitmapDecoder decoder = new JpegBitmapDecoder(new FileStream(file, FileMode.Open), BitmapCreateOptions.None, BitmapCacheOption.None);
+            BitmapMetadata meta = (BitmapMetadata)decoder.Frames[0].Metadata;
 
-            try
+            metaList.Add("Title: " + meta.Title.Replace("\r", ", "));
+            metaList.Add("Author: " + meta.Author[0]);
+            string keywords = "";
+            foreach (string s in meta.Keywords)
             {
-                foreach(PropertyItem p in propItems)
-                {
-                    Console.WriteLine("ID: 0x"+p.Id.ToString());
-                    Console.WriteLine("Type: " + p.Type);
-                    Console.WriteLine();
-                    //Console.WriteLine(Encoding.ASCII.GetString(img.GetPropertyItem(p.Id).Value));
-                    
-                }
-            } catch(Exception ex)
-            {
-                Console.WriteLine(ex);
+                keywords += s + ", ";
             }
-            
+            metaList.Add("Keywords: " + keywords);
+            metaList.Add("Copyright: " + meta.Copyright.Replace("\r", ", "));
+            metaList.Add("Date: " + meta.DateTaken);
 
-            
+            foreach (string s in metaList)
+            {
+                Console.WriteLine(s);
+            }
 
-            return meta;
+            return metaList;
         }
     }
 }
