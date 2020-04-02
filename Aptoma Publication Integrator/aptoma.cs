@@ -24,12 +24,12 @@ namespace Aptoma_Publication_Integrator
             Program.Log("Initializing aptoma class");
             
             LoadSettings();
-            //GetToken();
         }
 
         static void LoadSettings()
         {
             Program.Log("Loading settings");
+
             APIKEY = ConfigurationManager.AppSettings.Get("APIKEY");
 
             string _authUser = ConfigurationManager.AppSettings.Get("AUTHUSER");
@@ -40,6 +40,8 @@ namespace Aptoma_Publication_Integrator
             EDITIONURL = ConfigurationManager.AppSettings.Get("EDITIONURL");
             PAGEURL = ConfigurationManager.AppSettings.Get("PAGEURL");
             IMGURL = ConfigurationManager.AppSettings.Get("IMGURL");
+
+            Program.Log("Settings loaded");
         }
         
         static bool GetToken()
@@ -111,8 +113,6 @@ namespace Aptoma_Publication_Integrator
             return result;
         }
 
-
-
         static public string[] PostEdition(string json)
         {
             Program.Log("Sending edition info to Aptoma");
@@ -145,24 +145,10 @@ namespace Aptoma_Publication_Integrator
             Dictionary<string, string> headers = new Dictionary<string, string>();
             GetToken();
             headers.Add("jwt", token);
-            //headers.Add("Authorization", "apikey " + APIKEY);
-            //headers.Add("Content-Type", "application/json");
 
             KeyValuePair<string, string> body = new KeyValuePair<string, string>("application/xml", xml);
             return AptomaPost(IMGURL, headers, body);
         }
-
-        //static public void SendWithToken(string json)
-        //{
-        //    GetToken();
-        //    Dictionary<string, string> headers = new Dictionary<string, string>();
-        //    headers.Add("jwt", token);
-        //    headers.Add("Content-Type", "application/json");
-
-        //    KeyValuePair<string, string> body = new KeyValuePair<string, string>("application/json", json);
-
-        //    AptomaPost(EDITIONURL, headers, body);
-        //}
 
     }
 }
