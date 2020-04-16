@@ -73,10 +73,9 @@ namespace Aptoma_Publication_Integrator
             dict.Add("format", meta.Format);
             dict.Add("subject", meta.Subject);
             dict.Add("comment", meta.Comment);
-            dict.Add("height", decoder.Frames[0].Height.ToString());
-            dict.Add("width", decoder.Frames[0].Width.ToString());
+            dict.Add("height", Math.Floor(decoder.Frames[0].Height / 4 * 3).ToString());
+            dict.Add("width", Math.Floor(decoder.Frames[0].Width / 4 * 3).ToString());
             
-
             string keywords = "";
             foreach (string s in meta.Keywords)
             {
