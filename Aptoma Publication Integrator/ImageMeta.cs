@@ -15,6 +15,8 @@ namespace Aptoma_Publication_Integrator
         {
             string xml = "";
             string base64 = ImageToBase64(file);
+            string[] filenameSplit = file.Split('\\');
+            string filename = filenameSplit[filenameSplit.Length - 1];
 
             Dictionary<string, string> meta = GetMetaDict(file);
 
@@ -24,28 +26,43 @@ namespace Aptoma_Publication_Integrator
             xml += "<DPIT:meta>";
             xml += "<DPIT:assetType>picture</DPIT:assetType>";
             xml += "<DPIT:publication id=\"2\">stpaper</DPIT:publication>";
-            xml += "<DPIT:fileName>sonne.jpg</DPIT:fileName>";
+            xml += "<DPIT:fileName>";
+            xml += filename;
+            xml += "</DPIT:fileName>";
             xml += "<DPIT:mimeType>image/jpeg</DPIT:mimeType>";
             xml += "<DPIT:assetOptions>";
-            xml += "<DPIT:assetOption name=\"directoryName\" dataType=\"string\" index=\"true\">Sport</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"foo\" dataType=\"string\">bar</DPIT:assetOption>";
+            //xml += "<DPIT:assetOption name=\"directoryName\" dataType=\"string\" index=\"true\">Sport</DPIT:assetOption>";
+            //xml += "<DPIT:assetOption name=\"foo\" dataType=\"string\">bar</DPIT:assetOption>";
             xml += "<DPIT:assetOption name=\"title\" dataType=\"text\" index=\"true\">";
             xml += meta["title"];
             xml += "</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"description\" dataType=\"text\">Ein schöner Frühlingstag läßt alles so viel freundlicher aussehen</DPIT:assetOption>";
+            xml += "<DPIT:assetOption name=\"comment\" dataType=\"text\">";
+            xml += meta["comment"];
+            xml += "</DPIT:assetOption>";
+            //xml += "<DPIT:assetOption name=\"keywords\" dataType=\"text\">";
+            //xml += meta["keywords"];
+            //xml += "</DPIT:assetOption>";
+            //xml += "<DPIT:assetOption name=\"description\" dataType=\"text\">Ein schöner Frühlingstag läßt alles so viel freundlicher aussehen</DPIT:assetOption>";
             xml += "<DPIT:assetOption name=\"credit\" dataType=\"string\" index=\"true\">";
             xml += meta["copyright"];
             xml += "</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"dimensions\" dataType=\"json\">{\"width\": \"150\", \"height\": \"60\"}</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"width\" dataType=\"int\">150</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"height\" dataType=\"int\">60</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"bla\" dataType=\"string\" index=\"true\" multiple=\"true\">eins</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"bla\" dataType=\"string\" index=\"true\" multiple=\"true\">zwei</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"isFool\" dataType=\"boolean\" index=\"true\">true</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"someDate\" dataType=\"date\" index=\"true\">2020-02-02 02:22:22</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"aoi\" dataType=\"json\">{\"focus\":{\"x\":949,\"y\":317},\"width\":181,\"height\":182,\"origin\":\"auto\",\"x\":859,\"y\":226}</DPIT:assetOption>";
+            //xml += "<DPIT:assetOption name=\"dimensions\" dataType=\"json\">{\"width\": \"150\", \"height\": \"60\"}</DPIT:assetOption>";
+            xml += "<DPIT:assetOption name=\"width\" dataType=\"int\">";
+            xml += meta["width"];
+            xml += "</DPIT:assetOption>";
+            xml += "<DPIT:assetOption name=\"height\" dataType=\"int\">";
+            xml += meta["height"];
+            xml += "</DPIT:assetOption>";
+            //xml += "<DPIT:assetOption name=\"bla\" dataType=\"string\" index=\"true\" multiple=\"true\">eins</DPIT:assetOption>";
+            //xml += "<DPIT:assetOption name=\"bla\" dataType=\"string\" index=\"true\" multiple=\"true\">zwei</DPIT:assetOption>";
+            //xml += "<DPIT:assetOption name=\"isFool\" dataType=\"boolean\" index=\"true\">true</DPIT:assetOption>";
+            xml += "<DPIT:assetOption name=\"dateTaken\" dataType=\"date\" index=\"true\">";
+            xml += meta["date"];
+            xml += "</DPIT:assetOption>";
+            //xml += "<DPIT:assetOption name=\"aoi\" dataType=\"json\">{\"focus\":{\"x\":949,\"y\":317},\"width\":181,\"height\":182,\"origin\":\"auto\",\"x\":859,\"y\":226}</DPIT:assetOption>";
             xml += "</DPIT:assetOptions>";
             xml += "</DPIT:meta>";
+
             xml += "<DPIT:contents>";
             xml += "<DPIT:content type=\"default\">";
             xml += "<DPIT:data encoding=\"base64\">";
@@ -55,6 +72,7 @@ namespace Aptoma_Publication_Integrator
             xml += "</DPIT:contents>";
             xml += "</DPIT:asset>";
             xml += "</DPIT:drpublishImportTransformation>";
+
 
             return xml;
         }
@@ -73,16 +91,18 @@ namespace Aptoma_Publication_Integrator
             dict.Add("format", meta.Format);
             dict.Add("subject", meta.Subject);
             dict.Add("comment", meta.Comment);
-            dict.Add("height", Math.Floor(decoder.Frames[0].Height / 4 * 3).ToString());
-            dict.Add("width", Math.Floor(decoder.Frames[0].Width / 4 * 3).ToString());
+            dict.Add("height", decoder.Frames[0].PixelHeight.ToString());
+            dict.Add("width", decoder.Frames[0].PixelWidth.ToString());
+            //dict.Add("height", Math.Floor(decoder.Frames[0].Height / 4 * 3).ToString());
+            //dict.Add("width", Math.Floor(decoder.Frames[0].Width / 4 * 3).ToString());
             
-            string keywords = "";
-            foreach (string s in meta.Keywords)
-            {
-                keywords += s + ", ";
-            }
+            //string keywords = "";
+            //foreach (string s in meta.Keywords)
+            //{
+            //    keywords += s + ", ";
+            //}
 
-            dict.Add("keywords", keywords);
+            //dict.Add("keywords", keywords);
 
             return dict;
         }
@@ -111,6 +131,16 @@ namespace Aptoma_Publication_Integrator
             }
 
             return metaList;
+        }
+
+        public static void MetaTest(string file)
+        {
+            Uri.TryCreate(file, UriKind.Absolute, out Uri uriResult);
+            //BitmapDecoder decoder = new JpegBitmapDecoder(uriResult, BitmapCreateOptions.None, BitmapCacheOption.None);
+            BitmapDecoder decoder = new JpegBitmapDecoder(new FileStream(file, FileMode.Open), BitmapCreateOptions.None, BitmapCacheOption.None);
+            BitmapMetadata meta = (BitmapMetadata)decoder.Frames[0].Metadata;
+
+            Console.WriteLine(meta.Author[0]);
         }
 
         static string ImageToBase64(string file)
