@@ -290,8 +290,9 @@ namespace Aptoma_Publication_Integrator
                     // Ads
                     if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("EPS"))
                     {
-                        //int orderNr = Int32.Parse(line.Split('\t')[8].Split('=')[1].Split(',')[0]);
-                        int orderNr = Int32.Parse(line.Split('\t')[6].Split('\\').Last().Split('.')[0]);
+                        int orderNr = Int32.Parse(line.Split('\t')[8].Split('=')[1].Split(',')[0]);
+                        //int orderNr = Int32.Parse(line.Split('\t')[6].Split('\\').Last().Split('.')[0]);
+                        
                         // X=274.97	Y=615.13	dX=243.78	dY=212.6	Class=1	Type=EPS,A	File=\\jf.medier\Data\CrossAd\JFMDB-data\eps\6\5\015628556.EPS	Id=3	String=15628556,FORB1,Kolding Mægleren ApS,2x75,CMYK,Forsider 2020	
 
                         string url = OrderLinkLookup(orderNr);
