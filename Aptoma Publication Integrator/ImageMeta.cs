@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using System.Windows.Media.Imaging;
+using System.Globalization;
 
 namespace Aptoma_Publication_Integrator
 {
@@ -19,30 +20,39 @@ namespace Aptoma_Publication_Integrator
             string filename = filenameSplit[filenameSplit.Length - 1];
 
             Dictionary<string, string> meta = GetMetaDict(file);
+            Dictionary<string, string> pubInfo = GetPublicationInfo(filename);
 
             xml += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
             xml += "<DPIT:drpublishImportTransformation xmlns:DPIT=\"http://drpublish.aptoma.no/xml/dpit\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://drpublish.aptoma.no/xml/dpit http://drp-dev.aptoma.no/stefan/drpublish/io/dpit.xsd\">";
             xml += "<DPIT:asset>";
             xml += "<DPIT:meta>";
             xml += "<DPIT:assetType>picture</DPIT:assetType>";
-            xml += "<DPIT:publication id=\"2\">stpaper</DPIT:publication>";
+            //xml += "<DPIT:publication id=\"2\">stpaper</DPIT:publication>";
+            xml += "<DPIT:publication>";
+            xml += pubInfo["publication"];
+            xml += "</DPIT:publication>";
             xml += "<DPIT:fileName>";
             xml += filename;
             xml += "</DPIT:fileName>";
             xml += "<DPIT:mimeType>image/jpeg</DPIT:mimeType>";
+
             xml += "<DPIT:assetOptions>";
-            //xml += "<DPIT:assetOption name=\"directoryName\" dataType=\"string\" index=\"true\">Sport</DPIT:assetOption>";
-            //xml += "<DPIT:assetOption name=\"foo\" dataType=\"string\">bar</DPIT:assetOption>";
-            xml += "<DPIT:assetOption name=\"title\" dataType=\"text\" index=\"true\">";
-            xml += meta["title"];
+
+            xml += "<DPIT:assetOption name=\"publishDate\" dataType=\"date\" index=\"true\">";
+            xml += DateTime.ParseExact(pubInfo["date"], "ddMMyyyy", CultureInfo.InvariantCulture);
             xml += "</DPIT:assetOption>";
+
+            xml += "<DPIT:assetOption name=\"title\" dataType=\"text\" index=\"true\">";
+            //xml += meta["title"];
+            xml += pubInfo["title"];
+            xml += "</DPIT:assetOption>";
+
             xml += "<DPIT:assetOption name=\"comment\" dataType=\"text\">";
             xml += meta["comment"];
             xml += "</DPIT:assetOption>";
             //xml += "<DPIT:assetOption name=\"keywords\" dataType=\"text\">";
             //xml += meta["keywords"];
             //xml += "</DPIT:assetOption>";
-            //xml += "<DPIT:assetOption name=\"description\" dataType=\"text\">Ein schöner Frühlingstag läßt alles so viel freundlicher aussehen</DPIT:assetOption>";
             xml += "<DPIT:assetOption name=\"credit\" dataType=\"string\" index=\"true\">";
             xml += meta["copyright"];
             xml += "</DPIT:assetOption>";
@@ -53,13 +63,12 @@ namespace Aptoma_Publication_Integrator
             xml += "<DPIT:assetOption name=\"height\" dataType=\"int\">";
             xml += meta["height"];
             xml += "</DPIT:assetOption>";
-            //xml += "<DPIT:assetOption name=\"bla\" dataType=\"string\" index=\"true\" multiple=\"true\">eins</DPIT:assetOption>";
-            //xml += "<DPIT:assetOption name=\"bla\" dataType=\"string\" index=\"true\" multiple=\"true\">zwei</DPIT:assetOption>";
             //xml += "<DPIT:assetOption name=\"isFool\" dataType=\"boolean\" index=\"true\">true</DPIT:assetOption>";
             xml += "<DPIT:assetOption name=\"dateTaken\" dataType=\"date\" index=\"true\">";
             xml += meta["date"];
             xml += "</DPIT:assetOption>";
             //xml += "<DPIT:assetOption name=\"aoi\" dataType=\"json\">{\"focus\":{\"x\":949,\"y\":317},\"width\":181,\"height\":182,\"origin\":\"auto\",\"x\":859,\"y\":226}</DPIT:assetOption>";
+
             xml += "</DPIT:assetOptions>";
             xml += "</DPIT:meta>";
 
@@ -81,7 +90,9 @@ namespace Aptoma_Publication_Integrator
         {
             Dictionary<string, string> dict = new Dictionary<string, string>();
 
-            BitmapDecoder decoder = new JpegBitmapDecoder(new FileStream(file, FileMode.Open), BitmapCreateOptions.None, BitmapCacheOption.None);
+            FileStream fs = new FileStream(file, FileMode.Open);
+            BitmapDecoder decoder = new JpegBitmapDecoder(fs, BitmapCreateOptions.None, BitmapCacheOption.None);
+            //BitmapDecoder decoder = new JpegBitmapDecoder(new FileStream(file, FileMode.Open), BitmapCreateOptions.None, BitmapCacheOption.None);
             BitmapMetadata meta = (BitmapMetadata)decoder.Frames[0].Metadata;
 
             dict.Add("title", meta.Title.Replace("\r", ", "));
@@ -95,7 +106,7 @@ namespace Aptoma_Publication_Integrator
             dict.Add("width", decoder.Frames[0].PixelWidth.ToString());
             //dict.Add("height", Math.Floor(decoder.Frames[0].Height / 4 * 3).ToString());
             //dict.Add("width", Math.Floor(decoder.Frames[0].Width / 4 * 3).ToString());
-            
+
             //string keywords = "";
             //foreach (string s in meta.Keywords)
             //{
@@ -103,6 +114,8 @@ namespace Aptoma_Publication_Integrator
             //}
 
             //dict.Add("keywords", keywords);
+
+            fs.Close();
 
             return dict;
         }
@@ -150,6 +163,49 @@ namespace Aptoma_Publication_Integrator
             b64 = Convert.ToBase64String(File.ReadAllBytes(file));
 
             return b64;
+        }
+
+        static Dictionary<string,string> GetPublicationInfo(string filename)
+        {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+
+            // 140520 FST Brand i staldbygning.jpg
+
+            string pubDate = "";
+            string publication = "";
+            string title = "";
+
+            try
+            {
+                pubDate = filename.Substring(0, 6);
+            } catch(Exception ex)
+            {
+                Program.Log(ex.Message);
+            }
+
+            try
+            {
+                publication = filename.Substring(7, 3);
+            }
+            catch (Exception ex)
+            {
+                Program.Log(ex.Message);
+            }
+
+            try
+            {
+                title = filename.Substring(11).Split('.')[0];
+            }
+            catch (Exception ex)
+            {
+                Program.Log(ex.Message);
+            }
+
+            dict.Add("pubDate", pubDate);
+            dict.Add("publication", publication);
+            dict.Add("title", title);
+
+            return dict;
         }
     }
 }

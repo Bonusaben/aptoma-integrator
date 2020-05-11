@@ -97,8 +97,8 @@ namespace Aptoma_Publication_Integrator
                     } else if (extension.Equals("jpg"))
                     {
                         //DEBUG
-                        ImageMeta.MetaTest(file);
-                        //string xml = ImageMeta.GetImageXml(file);
+                        //ImageMeta.MetaTest(file);
+                        string xml = ImageMeta.GetImageXml(file);
                         //Aptoma.PostImage(xml);
                     } else
                     {
