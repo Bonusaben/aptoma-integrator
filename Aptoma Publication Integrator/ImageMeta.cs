@@ -39,7 +39,7 @@ namespace Aptoma_Publication_Integrator
             xml += "<DPIT:assetOptions>";
 
             xml += "<DPIT:assetOption name=\"publishDate\" dataType=\"date\" index=\"true\">";
-            xml += DateTime.ParseExact(pubInfo["date"], "ddMMyyyy", CultureInfo.InvariantCulture);
+            xml += pubInfo["pubDate"];
             xml += "</DPIT:assetOption>";
 
             xml += "<DPIT:assetOption name=\"title\" dataType=\"text\" index=\"true\">";
@@ -65,7 +65,7 @@ namespace Aptoma_Publication_Integrator
             xml += "</DPIT:assetOption>";
             //xml += "<DPIT:assetOption name=\"isFool\" dataType=\"boolean\" index=\"true\">true</DPIT:assetOption>";
             xml += "<DPIT:assetOption name=\"dateTaken\" dataType=\"date\" index=\"true\">";
-            xml += meta["date"];
+            xml += meta["dateTaken"];
             xml += "</DPIT:assetOption>";
             //xml += "<DPIT:assetOption name=\"aoi\" dataType=\"json\">{\"focus\":{\"x\":949,\"y\":317},\"width\":181,\"height\":182,\"origin\":\"auto\",\"x\":859,\"y\":226}</DPIT:assetOption>";
 
@@ -82,7 +82,6 @@ namespace Aptoma_Publication_Integrator
             xml += "</DPIT:asset>";
             xml += "</DPIT:drpublishImportTransformation>";
 
-
             return xml;
         }
 
@@ -95,10 +94,12 @@ namespace Aptoma_Publication_Integrator
             //BitmapDecoder decoder = new JpegBitmapDecoder(new FileStream(file, FileMode.Open), BitmapCreateOptions.None, BitmapCacheOption.None);
             BitmapMetadata meta = (BitmapMetadata)decoder.Frames[0].Metadata;
 
+            string dateTaken = DateTime.Parse(meta.DateTaken).ToString("yyyy-MM-ddTHH:mm:ssZ");
+
             dict.Add("title", meta.Title.Replace("\r", ", "));
             dict.Add("author", meta.Author[0]);
             dict.Add("copyright", meta.Copyright.Replace("\r", ", "));
-            dict.Add("date", meta.DateTaken);
+            dict.Add("dateTaken", dateTaken);
             dict.Add("format", meta.Format);
             dict.Add("subject", meta.Subject);
             dict.Add("comment", meta.Comment);
@@ -177,7 +178,8 @@ namespace Aptoma_Publication_Integrator
 
             try
             {
-                pubDate = filename.Substring(0, 6);
+                pubDate = DateTime.ParseExact(filename.Substring(0, 6), "ddMMyy", CultureInfo.InvariantCulture).ToString("yyyy-MM-ddTHH:mm:ssZ");
+                //pubDate = filename.Substring(0, 6);
             } catch(Exception ex)
             {
                 Program.Log(ex.Message);
