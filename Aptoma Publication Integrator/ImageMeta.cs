@@ -27,10 +27,10 @@ namespace Aptoma_Publication_Integrator
             xml += "<DPIT:asset>";
             xml += "<DPIT:meta>";
             xml += "<DPIT:assetType>picture</DPIT:assetType>";
-            //xml += "<DPIT:publication id=\"2\">stpaper</DPIT:publication>";
-            xml += "<DPIT:publication>";
-            xml += pubInfo["publication"];
-            xml += "</DPIT:publication>";
+            xml += "<DPIT:publication id=\"2\">stpaper</DPIT:publication>";
+            //xml += "<DPIT:publication>";
+            //xml += pubInfo["publication"];
+            //xml += "</DPIT:publication>";
             xml += "<DPIT:fileName>";
             xml += filename;
             xml += "</DPIT:fileName>";

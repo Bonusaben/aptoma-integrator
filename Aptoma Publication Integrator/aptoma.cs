@@ -89,9 +89,12 @@ namespace Aptoma_Publication_Integrator
             var client = new RestClient(url);
             var request = new RestRequest(Method.POST);
 
-            foreach (KeyValuePair<string, string> header in headers)
+            if (headers != null)
             {
-                request.AddHeader(header.Key, header.Value);
+                foreach (KeyValuePair<string, string> header in headers)
+                {
+                    request.AddHeader(header.Key, header.Value);
+                }
             }            
 
             request.AddParameter(requestBodyParameter.Key, requestBodyParameter.Value, ParameterType.RequestBody);
@@ -105,7 +108,7 @@ namespace Aptoma_Publication_Integrator
 
             Program.Log(result[0]);
 
-            if (sCode.Equals("Bad Request") || sCode.Equals("Forbidden"))
+            if (sCode.Equals("Bad Request") || sCode.Equals("Forbidden") || sCode.Equals("Unauthorized"))
             {                
                 Program.Log(result[1]);
             }
@@ -140,14 +143,14 @@ namespace Aptoma_Publication_Integrator
 
         static public string[] PostImage(string xml)
         {
-            Program.Log("Sending image info to Aptoma");
-
-            Dictionary<string, string> headers = new Dictionary<string, string>();
+            //Dictionary<string, string> headers = new Dictionary<string, string>();
             GetToken();
-            headers.Add("jwt", token);
-
+            //headers.Add("jwt", token);
+            
             KeyValuePair<string, string> body = new KeyValuePair<string, string>("application/xml", xml);
-            return AptomaPost(IMGURL, headers, body);
+
+            //return AptomaPost(IMGURL+"?jwt="+token, headers, body);
+            return AptomaPost(IMGURL + "?jwt=" + token, null, body);
         }
 
     }

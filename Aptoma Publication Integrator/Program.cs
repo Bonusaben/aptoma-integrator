@@ -96,10 +96,9 @@ namespace Aptoma_Publication_Integrator
                         Aptoma.PostEdition(json);
                     } else if (extension.Equals("jpg"))
                     {
-                        //DEBUG
-                        //ImageMeta.MetaTest(file);
+                        Log("Processing jpg file: " + fileName);
                         string xml = ImageMeta.GetImageXml(file);
-                        //Aptoma.PostImage(xml);
+                        Aptoma.PostImage(xml);
                     } else
                     {
                         Log("Unknown fileformat: " + extension);
