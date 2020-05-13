@@ -110,7 +110,7 @@ namespace Aptoma_Publication_Integrator
 
             if (!sCode.Equals("OK"))
             {
-                Program.Log(result[1]);
+                Program.Log(result[0] + " - " +result[1]);
             }
 
             //if (sCode.Equals("Bad Request") || sCode.Equals("Forbidden") || sCode.Equals("Unauthorized"))
