@@ -28,7 +28,7 @@ namespace Aptoma_Publication_Integrator
 
         static void LoadSettings()
         {
-            Program.Log("Loading settings");
+            Program.Log("Loading Aptoma settings");
 
             APIKEY = ConfigurationManager.AppSettings.Get("APIKEY");
 

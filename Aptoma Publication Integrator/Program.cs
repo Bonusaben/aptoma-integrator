@@ -20,6 +20,7 @@ namespace Aptoma_Publication_Integrator
         static string INPUTDIR;
         static string ERRORDIR;
         static string LOGFILE;
+        static string OUTPUTDIR;
 
         static Timer TIMER;
         static int TIMERINTERVAL = 5000; // Milliseconds
@@ -27,6 +28,7 @@ namespace Aptoma_Publication_Integrator
         static List<string> FILELIST;
 
         static bool WORKING = false;
+        static bool SAVEOUTPUT = false;
 
         static string DBURL, DBPORT, DBUSER, DBPASS;
         static string CONNECTIONSTRING;
@@ -36,6 +38,11 @@ namespace Aptoma_Publication_Integrator
             LoadSettings();
             StartPolling();
             Aptoma.Init();
+
+            if (SAVEOUTPUT)
+            {
+                Log("ATTENTION! SAVEOUTPUT is set to true. All files will be saved in " + OUTPUTDIR);
+            }
 
             Console.Write("Press <Escape> to exit... ");
             while (Console.ReadKey().Key != ConsoleKey.Escape) { }
@@ -53,6 +60,9 @@ namespace Aptoma_Publication_Integrator
             LOGFILE = appSettings.Get("LOGFILE");
             TIMERINTERVAL = Int32.Parse(appSettings.Get("TIMERINTERVAL"));
 
+            SAVEOUTPUT = Boolean.Parse(appSettings.Get("SAVEOUTPUT"));
+            OUTPUTDIR = appSettings.Get("OUTPUTDIR");
+            
             DBURL = appSettings.Get("DBURL");
             DBPORT = appSettings.Get("DBPORT");
             DBUSER = appSettings.Get("DBUSER");
@@ -100,6 +110,10 @@ namespace Aptoma_Publication_Integrator
                             Log("Moving " + fileName + " to error folder.");
                             File.Copy(file, ERRORDIR + "\\" + fileName, true);
                         }
+
+                        if (SAVEOUTPUT) {
+                            SaveOutput(fileName + ".txt", json);
+                        }
                     } else if (extension.Equals("xml"))
                     {
                         Log("Processing xml file: " + fileName);
@@ -115,6 +129,11 @@ namespace Aptoma_Publication_Integrator
                             Log("Moving " + fileName + " to error folder.");
                             File.Copy(file, ERRORDIR + "\\" + fileName, true);
                         }
+
+                        if (SAVEOUTPUT)
+                        {
+                            SaveOutput(fileName + ".txt", json);
+                        }
                     } else if (extension.Equals("jpg"))
                     {
                         Log("Processing jpg file: " + fileName);
@@ -129,6 +148,11 @@ namespace Aptoma_Publication_Integrator
                             Log("Error uploading image!");
                             Log("Moving " + fileName + " to error folder.");
                             File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                        }
+
+                        if (SAVEOUTPUT)
+                        {
+                            SaveOutput(fileName + ".txt", xml);
                         }
                     } else
                     {
@@ -451,6 +475,15 @@ namespace Aptoma_Publication_Integrator
             }
 
             return unpaid;
+        }
+
+        static void SaveOutput(string filename, string s)
+        {
+            File.WriteAllText(OUTPUTDIR + filename, s);
+            //StreamWriter sw = File.AppendText(OUTPUTDIR + filename);
+            //sw.WriteLine(json);
+            //sw.Close();
+            Log("Saved " + filename + " to output dir");
         }
 
         public static void Log(string s)
