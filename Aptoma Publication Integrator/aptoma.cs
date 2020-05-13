@@ -106,7 +106,7 @@ namespace Aptoma_Publication_Integrator
             result[0] = sCode;
             result[1] = response.Content;
 
-            Program.Log(result[0]);
+            //Program.Log(result[0]);
 
             if (!sCode.Equals("OK"))
             {
