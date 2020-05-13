@@ -36,7 +36,9 @@ namespace Aptoma_Publication_Integrator
             LoadSettings();
             StartPolling();
             Aptoma.Init();
-            Console.ReadKey();
+
+            Console.Write("Press <Escape> to exit... ");
+            while (Console.ReadKey().Key != ConsoleKey.Escape) { }
         }
 
         static void LoadSettings()
