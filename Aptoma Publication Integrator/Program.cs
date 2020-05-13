@@ -44,7 +44,7 @@ namespace Aptoma_Publication_Integrator
                 Log("ATTENTION! SAVEOUTPUT is set to true. All files will be saved in " + OUTPUTDIR);
             }
 
-            Console.Write("Press <Escape> to exit... ");
+            Console.Write("Press <Escape> to exit...\n");
             while (Console.ReadKey().Key != ConsoleKey.Escape) { }
         }
 
@@ -62,7 +62,20 @@ namespace Aptoma_Publication_Integrator
 
             SAVEOUTPUT = Boolean.Parse(appSettings.Get("SAVEOUTPUT"));
             OUTPUTDIR = appSettings.Get("OUTPUTDIR");
-            
+
+            if (INPUTDIR.Substring(INPUTDIR.Length - 1) != "\\")
+            {
+                INPUTDIR += "\\";
+            }
+            if (ERRORDIR.Substring(ERRORDIR.Length - 1) != "\\")
+            {
+                ERRORDIR += "\\";
+            }
+            if (OUTPUTDIR.Substring(OUTPUTDIR.Length - 1) != "\\")
+            {
+                OUTPUTDIR += "\\";
+            }
+
             DBURL = appSettings.Get("DBURL");
             DBPORT = appSettings.Get("DBPORT");
             DBUSER = appSettings.Get("DBUSER");
