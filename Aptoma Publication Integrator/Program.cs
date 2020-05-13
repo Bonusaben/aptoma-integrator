@@ -452,6 +452,7 @@ namespace Aptoma_Publication_Integrator
 
         public static void Log(string s)
         {
+            s = DateTime.Now.ToString(CultureInfo.CurrentUICulture) + " - " + s;
             Console.WriteLine(s);
 
             if (LOGFILE != "")
