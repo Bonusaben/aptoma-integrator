@@ -37,8 +37,8 @@ namespace Aptoma_Publication_Integrator
 
             xml += "<DPIT:assetOptions>";
 
-            xml += "<DPIT:assetOption name=\"publication\" dataType=\"text\" index=\"true\">";
-            xml += pubInfo["publication"];
+            xml += "<DPIT:assetOption name=\"folder\" dataType=\"string\" index=\"true\">";
+            xml += pubInfo["folder"];
             xml += "</DPIT:assetOption>";
 
             xml += "<DPIT:assetOption name=\"publishDate\" dataType=\"date\" index=\"true\">";
@@ -46,30 +46,33 @@ namespace Aptoma_Publication_Integrator
             xml += "</DPIT:assetOption>";
 
             xml += "<DPIT:assetOption name=\"title\" dataType=\"text\" index=\"true\">";
-            //xml += meta["title"];
+            xml += pubInfo["title"];
+            xml += "</DPIT:assetOption>";
+
+            xml += "<DPIT:assetOption name=\"headline\" dataType=\"text\" index=\"true\">";
             xml += pubInfo["title"];
             xml += "</DPIT:assetOption>";
 
             xml += "<DPIT:assetOption name=\"comment\" dataType=\"text\">";
             xml += meta["comment"];
             xml += "</DPIT:assetOption>";
-            //xml += "<DPIT:assetOption name=\"keywords\" dataType=\"text\">";
-            //xml += meta["keywords"];
-            //xml += "</DPIT:assetOption>";
+
             xml += "<DPIT:assetOption name=\"credit\" dataType=\"string\" index=\"true\">";
             xml += meta["copyright"];
             xml += "</DPIT:assetOption>";
-            //xml += "<DPIT:assetOption name=\"dimensions\" dataType=\"json\">{\"width\": \"150\", \"height\": \"60\"}</DPIT:assetOption>";
+            
             xml += "<DPIT:assetOption name=\"width\" dataType=\"int\">";
             xml += meta["width"];
             xml += "</DPIT:assetOption>";
+
             xml += "<DPIT:assetOption name=\"height\" dataType=\"int\">";
             xml += meta["height"];
             xml += "</DPIT:assetOption>";
-            //xml += "<DPIT:assetOption name=\"isFool\" dataType=\"boolean\" index=\"true\">true</DPIT:assetOption>";
+            
             xml += "<DPIT:assetOption name=\"dateTaken\" dataType=\"date\" index=\"true\">";
             xml += meta["dateTaken"];
             xml += "</DPIT:assetOption>";
+
             //xml += "<DPIT:assetOption name=\"aoi\" dataType=\"json\">{\"focus\":{\"x\":949,\"y\":317},\"width\":181,\"height\":182,\"origin\":\"auto\",\"x\":859,\"y\":226}</DPIT:assetOption>";
 
             xml += "</DPIT:assetOptions>";
@@ -176,7 +179,7 @@ namespace Aptoma_Publication_Integrator
             // 140520 FST Brand i staldbygning.jpg
 
             string pubDate = "";
-            string publication = "";
+            string folder = "";
             string title = "";
 
             try
@@ -190,7 +193,7 @@ namespace Aptoma_Publication_Integrator
 
             try
             {
-                publication = filename.Substring(7, 3);
+                folder = filename.Substring(7, 3);
             }
             catch (Exception ex)
             {
@@ -207,7 +210,7 @@ namespace Aptoma_Publication_Integrator
             }
 
             dict.Add("pubDate", pubDate);
-            dict.Add("publication", publication);
+            dict.Add("folder", folder);
             dict.Add("title", title);
 
             return dict;
