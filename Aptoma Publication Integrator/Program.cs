@@ -348,79 +348,90 @@ namespace Aptoma_Publication_Integrator
 
             jw.WritePropertyName("ads");
             jw.WriteStartArray();
-            foreach (string line in lines)
+
+            if (lines.Count > 0)
             {
-                if (line.Length != 0)
+                foreach (string line in lines)
                 {
-                    // Ads
-                    if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("EPS"))
+                    if (line.Length != 0)
                     {
-                        int orderNr = Int32.Parse(line.Split('\t')[8].Split('=')[1].Split(',')[0]);
-                        //int orderNr = Int32.Parse(line.Split('\t')[6].Split('\\').Last().Split('.')[0]);
-                        
-                        // X=274.97	Y=615.13	dX=243.78	dY=212.6	Class=1	Type=EPS,A	File=\\jf.medier\Data\CrossAd\JFMDB-data\eps\6\5\015628556.EPS	Id=3	String=15628556,FORB1,Kolding Mægleren ApS,2x75,CMYK,Forsider 2020	
+                        // Ads
+                        if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("EPS"))
+                        {
+                            int orderNr = Int32.Parse(line.Split('\t')[8].Split('=')[1].Split(',')[0]);
+                            //int orderNr = Int32.Parse(line.Split('\t')[6].Split('\\').Last().Split('.')[0]);
 
-                        string url = OrderLinkLookup(orderNr);
-                        bool unpaid = OrderPaidLookup(orderNr);
+                            // X=274.97	Y=615.13	dX=243.78	dY=212.6	Class=1	Type=EPS,A	File=\\jf.medier\Data\CrossAd\JFMDB-data\eps\6\5\015628556.EPS	Id=3	String=15628556,FORB1,Kolding Mægleren ApS,2x75,CMYK,Forsider 2020	
 
-                        jw.WriteStartObject();
-                        jw.WritePropertyName("orderNumber");
-                        //jw.WriteValue(orderNr);
-                        jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ""));
-                        jw.WritePropertyName("file");
-                        jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last().Replace(".EPS",".PDF"));
-                        jw.WritePropertyName("imageFile");
-                        jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last().Split('.')[0]+".jpg");
-                        jw.WritePropertyName("url");
-                        jw.WriteValue(url);
-                        jw.WritePropertyName("x");
-                        jw.WriteValue(float.Parse(line.Split('\t')[0].Split('=')[1], CultureInfo.InvariantCulture));
-                        jw.WritePropertyName("y");
-                        jw.WriteValue(float.Parse(line.Split('\t')[1].Split('=')[1], CultureInfo.InvariantCulture));
-                        jw.WritePropertyName("width");
-                        jw.WriteValue(float.Parse(line.Split('\t')[2].Split('=')[1], CultureInfo.InvariantCulture));
-                        jw.WritePropertyName("height");
-                        jw.WriteValue(float.Parse(line.Split('\t')[3].Split('=')[1], CultureInfo.InvariantCulture));
-                        jw.WritePropertyName("bookingCode");
-                        jw.WriteValue(line.Split('\t')[8].Split('=')[1].Split(',')[1]);
-                        jw.WritePropertyName("unpaid");
-                        jw.WriteValue(unpaid);
-                        jw.WritePropertyName("customer");
-                        jw.WriteValue(line.Split('\t')[8].Split('=')[1].Split(',')[2]);
-                        jw.WritePropertyName("adReady");
-                        jw.WriteValue(line.Split('\t')[4].Split('=')[1]);
-                        jw.WritePropertyName("comment");
-                        jw.WriteValue(line.Split('\t')[8].Split('=')[1].Split(',')[5]);
-                        jw.WriteEndObject();
+                            string url = OrderLinkLookup(orderNr);
+                            bool unpaid = OrderPaidLookup(orderNr);
+
+                            jw.WriteStartObject();
+                            jw.WritePropertyName("orderNumber");
+                            //jw.WriteValue(orderNr);
+                            jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ""));
+                            jw.WritePropertyName("file");
+                            jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ".PDF"));
+                            jw.WritePropertyName("imageFile");
+                            jw.WriteValue(line.Split('\t')[6].Split('=')[1].Split('\\').Last().Split('.')[0] + ".jpg");
+                            jw.WritePropertyName("url");
+                            jw.WriteValue(url);
+                            jw.WritePropertyName("x");
+                            jw.WriteValue(float.Parse(line.Split('\t')[0].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("y");
+                            jw.WriteValue(float.Parse(line.Split('\t')[1].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("width");
+                            jw.WriteValue(float.Parse(line.Split('\t')[2].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("height");
+                            jw.WriteValue(float.Parse(line.Split('\t')[3].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("bookingCode");
+                            jw.WriteValue(line.Split('\t')[8].Split('=')[1].Split(',')[1]);
+                            jw.WritePropertyName("unpaid");
+                            jw.WriteValue(unpaid);
+                            jw.WritePropertyName("customer");
+                            jw.WriteValue(line.Split('\t')[8].Split('=')[1].Split(',')[2]);
+                            jw.WritePropertyName("adReady");
+                            jw.WriteValue(line.Split('\t')[4].Split('=')[1]);
+                            jw.WritePropertyName("comment");
+                            jw.WriteValue(line.Split('\t')[8].Split('=')[1].Split(',')[5]);
+                            jw.WriteEndObject();
+                        }
                     }
                 }
             }
+            
             jw.WriteEndArray();
 
             jw.WritePropertyName("dividers");
             jw.WriteStartArray();
-            foreach (string line in lines)
+
+            if (lines.Count > 0)
             {
-                if (line.Length != 0)
+                foreach (string line in lines)
                 {
-                    // Dividers
-                    if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("LINES"))
+                    if (line.Length != 0)
                     {
-                        jw.WriteStartObject();
-                        jw.WritePropertyName("x");
-                        jw.WriteValue(float.Parse(line.Split('\t')[0].Split('=')[1], CultureInfo.InvariantCulture));
-                        jw.WritePropertyName("y");
-                        jw.WriteValue(float.Parse(line.Split('\t')[1].Split('=')[1], CultureInfo.InvariantCulture));
-                        jw.WritePropertyName("x2");
-                        jw.WriteValue(float.Parse(line.Split('\t')[2].Split('=')[1], CultureInfo.InvariantCulture));
-                        jw.WritePropertyName("y2");
-                        jw.WriteValue(float.Parse(line.Split('\t')[3].Split('=')[1], CultureInfo.InvariantCulture));
-                        //jw.WritePropertyName("thickness");
-                        //jw.WriteValue(line.Split('\t')[5].Split('=')[1].Split(',')[1]);
-                        jw.WriteEndObject();
+                        // Dividers
+                        if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("LINES"))
+                        {
+                            jw.WriteStartObject();
+                            jw.WritePropertyName("x");
+                            jw.WriteValue(float.Parse(line.Split('\t')[0].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("y");
+                            jw.WriteValue(float.Parse(line.Split('\t')[1].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("x2");
+                            jw.WriteValue(float.Parse(line.Split('\t')[2].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("y2");
+                            jw.WriteValue(float.Parse(line.Split('\t')[3].Split('=')[1], CultureInfo.InvariantCulture));
+                            //jw.WritePropertyName("thickness");
+                            //jw.WriteValue(line.Split('\t')[5].Split('=')[1].Split(',')[1]);
+                            jw.WriteEndObject();
+                        }
                     }
                 }
             }
+            
+            
             jw.WriteEndArray();
 
             jw.WriteEndObject();
