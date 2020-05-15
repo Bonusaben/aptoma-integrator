@@ -103,84 +103,104 @@ namespace Aptoma_Publication_Integrator
 
                 foreach(string file in FILELIST)
                 {
+                    bool skipFile = false;
+
                     string[] fileSplit = file.Split('\\');
                     string fileName = fileSplit[fileSplit.Length - 1];
 
                     string[] fileNameSplit = fileName.Split('.');
                     string extension = fileNameSplit[fileNameSplit.Length - 1].ToLower();
-                    
-                    if (extension.Substring(0,1).ToLower().Equals("p"))
-                    {
-                        Log("Processing pdl file: " + fileName);
-                        string json = ConvertPDLtoJSON(file);
-                        string[] response = Aptoma.PostPage(json);
-                        if (response[0].Equals("OK"))
-                        {
-                            Log("Page successfully uploaded");
-                        } else
-                        {
-                            Log("Error uploading page!");
-                            Log("Moving " + fileName + " to error folder.");
-                            File.Copy(file, ERRORDIR + "\\" + fileName, true);
-                        }
-
-                        if (SAVEOUTPUT) {
-                            SaveOutput(fileName + ".txt", json);
-                        }
-                    } else if (extension.Equals("xml"))
-                    {
-                        Log("Processing xml file: " + fileName);
-                        string json = ConvertXMLToJson(file);
-                        string[] response = Aptoma.PostEdition(json);
-                        if (response[0].Equals("OK"))
-                        {
-                            Log("Edition successfully uploaded");
-                        }
-                        else
-                        {
-                            Log("Error uploading edition!");
-                            Log("Moving " + fileName + " to error folder.");
-                            File.Copy(file, ERRORDIR + "\\" + fileName, true);
-                        }
-
-                        if (SAVEOUTPUT)
-                        {
-                            SaveOutput(fileName + ".txt", json);
-                        }
-                    } else if (extension.Equals("jpg"))
-                    {
-                        Log("Processing jpg file: " + fileName);
-                        string xml = ImageMeta.GetImageXml(file);
-                        string[] response = Aptoma.PostImage(xml);
-                        if (response[0].Equals("OK"))
-                        {
-                            Log("Image successfully uploaded");
-                        }
-                        else
-                        {
-                            Log("Error uploading image!");
-                            Log("Moving " + fileName + " to error folder.");
-                            File.Copy(file, ERRORDIR + "\\" + fileName, true);
-                        }
-
-                        if (SAVEOUTPUT)
-                        {
-                            SaveOutput(fileName + ".txt", xml);
-                        }
-                    } else
-                    {
-                        Log("Unknown fileformat: " + extension);
-                        Log("Moving " + fileName + " to error folder.");
-                        File.Copy(file, ERRORDIR + "\\" + fileName,true);
-                    }
 
                     try
                     {
-                        File.Delete(file);
+                        if (extension.Substring(0, 1).ToLower().Equals("p"))
+                        {
+                            Log("Processing pdl file: " + fileName);
+                            string json = ConvertPDLtoJSON(file);
+                            string[] response = Aptoma.PostPage(json);
+                            if (response[0].Equals("OK"))
+                            {
+                                Log("Page successfully uploaded");
+                            }
+                            else
+                            {
+                                Log("Error uploading page!");
+                                Log("Moving " + fileName + " to error folder.");
+                                File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                            }
+
+                            if (SAVEOUTPUT)
+                            {
+                                SaveOutput(fileName + ".txt", json);
+                            }
+                        }
+                        else if (extension.Equals("xml"))
+                        {
+                            Log("Processing xml file: " + fileName);
+                            string json = ConvertXMLToJson(file);
+                            string[] response = Aptoma.PostEdition(json);
+                            if (response[0].Equals("OK"))
+                            {
+                                Log("Edition successfully uploaded");
+                            }
+                            else
+                            {
+                                Log("Error uploading edition!");
+                                Log("Moving " + fileName + " to error folder.");
+                                File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                            }
+
+                            if (SAVEOUTPUT)
+                            {
+                                SaveOutput(fileName + ".txt", json);
+                            }
+                        }
+                        else if (extension.Equals("jpg"))
+                        {
+                            Log("Processing jpg file: " + fileName);
+                            string xml = ImageMeta.GetImageXml(file);
+                            string[] response = Aptoma.PostImage(xml);
+                            if (response[0].Equals("OK"))
+                            {
+                                Log("Image successfully uploaded");
+                            }
+                            else
+                            {
+                                Log("Error uploading image!");
+                                Log("Moving " + fileName + " to error folder.");
+                                File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                            }
+
+                            if (SAVEOUTPUT)
+                            {
+                                SaveOutput(fileName + ".txt", xml);
+                            }
+                        }
+                        else
+                        {
+                            Log("Unknown fileformat: " + extension);
+                            Log("Moving " + fileName + " to error folder.");
+                            File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                        }
                     } catch(Exception ex)
                     {
                         Log(ex.Message);
+                        Log("Skipping file...");
+                        skipFile = true;
                     }
+                    
+
+                    if (!skipFile)
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex.Message);
+                        }
+                    }                    
 
                 }
 
