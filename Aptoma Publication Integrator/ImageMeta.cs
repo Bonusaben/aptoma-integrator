@@ -41,9 +41,9 @@ namespace Aptoma_Publication_Integrator
             xml += pubInfo["folder"];
             xml += "</DPIT:assetOption>";
 
-            xml += "<DPIT:assetOption name=\"publishDate\" dataType=\"date\" index=\"true\">";
-            xml += pubInfo["pubDate"];
-            xml += "</DPIT:assetOption>";
+            //xml += "<DPIT:assetOption name=\"publishDate\" dataType=\"date\" index=\"true\">";
+            //xml += pubInfo["pubDate"];
+            //xml += "</DPIT:assetOption>";
 
             xml += "<DPIT:assetOption name=\"title\" dataType=\"text\" index=\"true\">";
             xml += pubInfo["title"];
@@ -102,25 +102,48 @@ namespace Aptoma_Publication_Integrator
 
             string dateTaken = DateTime.Parse(meta.DateTaken).ToString("yyyy-MM-ddTHH:mm:ssZ");
 
-            dict.Add("title", meta.Title.Replace("\r", ", "));
-            dict.Add("author", meta.Author[0]);
-            dict.Add("copyright", meta.Copyright.Replace("\r", ", "));
-            dict.Add("dateTaken", dateTaken);
-            dict.Add("format", meta.Format);
-            dict.Add("subject", meta.Subject);
-            dict.Add("comment", meta.Comment);
-            dict.Add("height", decoder.Frames[0].PixelHeight.ToString());
-            dict.Add("width", decoder.Frames[0].PixelWidth.ToString());
-            //dict.Add("height", Math.Floor(decoder.Frames[0].Height / 4 * 3).ToString());
-            //dict.Add("width", Math.Floor(decoder.Frames[0].Width / 4 * 3).ToString());
+            dict.Add("author", "");
+            dict.Add("copyright", "");
+            dict.Add("dateTaken", "");
+            dict.Add("format", "");
+            dict.Add("subject", "");
+            dict.Add("comment", "");
+            dict.Add("height", "");
+            dict.Add("width", "");
 
-            //string keywords = "";
-            //foreach (string s in meta.Keywords)
-            //{
-            //    keywords += s + ", ";
-            //}
+            try
+            {
+                dict["author"] = meta.Author[0];
+                dict["copyright"] = meta.Copyright.Replace("\r", ", ");
+                dict["dateTaken"] = dateTaken;
+                dict["format"] = meta.Format;
+                dict["subject"] = meta.Subject;
+                dict["comment"] = meta.Comment;
+                dict["height"] = decoder.Frames[0].PixelHeight.ToString();
+                dict["width"] = decoder.Frames[0].PixelWidth.ToString();
 
-            //dict.Add("keywords", keywords);
+                //dict.Add("title", meta.Title.Replace("\r", ", "));
+                //dict.Add("author", meta.Author[0]);
+                //dict.Add("copyright", meta.Copyright.Replace("\r", ", "));
+                //dict.Add("dateTaken", dateTaken);
+                //dict.Add("format", meta.Format);
+                //dict.Add("subject", meta.Subject);
+                //dict.Add("comment", meta.Comment);
+                //dict.Add("height", decoder.Frames[0].PixelHeight.ToString());
+                //dict.Add("width", decoder.Frames[0].PixelWidth.ToString());
+
+                //string keywords = "";
+                //foreach (string s in meta.Keywords)
+                //{
+                //    keywords += s + ", ";
+                //}
+
+                //dict.Add("keywords", keywords);
+            } catch(Exception ex)
+            {
+                Program.Log("Unable to get all meta data");
+                Program.Log(ex.Message);
+            }
 
             fs.Close();
 
@@ -178,22 +201,22 @@ namespace Aptoma_Publication_Integrator
 
             // 140520 FST Brand i staldbygning.jpg
 
-            string pubDate = "";
+            //string pubDate = "";
             string folder = "";
             string title = "";
 
-            try
-            {
-                pubDate = DateTime.ParseExact(filename.Substring(0, 6), "ddMMyy", CultureInfo.InvariantCulture).ToString("yyyy-MM-ddTHH:mm:ssZ");
-                //pubDate = filename.Substring(0, 6);
-            } catch(Exception ex)
-            {
-                Program.Log(ex.Message);
-            }
+            //try
+            //{
+            //    pubDate = DateTime.ParseExact(filename.Substring(0, 6), "ddMMyy", CultureInfo.InvariantCulture).ToString("yyyy-MM-ddTHH:mm:ssZ");
+            //    //pubDate = filename.Substring(0, 6);
+            //} catch(Exception ex)
+            //{
+            //    Program.Log(ex.Message);
+            //}
 
             try
             {
-                folder = filename.Substring(7, 3);
+                folder = filename.Substring(3, 3);
             }
             catch (Exception ex)
             {
@@ -202,14 +225,14 @@ namespace Aptoma_Publication_Integrator
 
             try
             {
-                title = filename.Substring(11).Split('.')[0];
+                title = filename.Substring(7).Split('.')[0];
             }
             catch (Exception ex)
             {
                 Program.Log(ex.Message);
             }
 
-            dict.Add("pubDate", pubDate);
+            //dict.Add("pubDate", pubDate);
             dict.Add("folder", folder);
             dict.Add("title", title);
 
