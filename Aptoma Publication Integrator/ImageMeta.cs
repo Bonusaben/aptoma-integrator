@@ -216,7 +216,7 @@ namespace Aptoma_Publication_Integrator
 
             try
             {
-                folder = filename.Substring(3, 3);
+                folder = filename.Substring(3, 3).ToUpper();
             }
             catch (Exception ex)
             {
