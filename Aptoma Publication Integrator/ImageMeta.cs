@@ -53,14 +53,22 @@ namespace Aptoma_Publication_Integrator
             xml += pubInfo["title"];
             xml += "</DPIT:assetOption>";
 
+            xml += "<DPIT:assetOption name=\"caption\" dataType=\"text\" index=\"true\">";
+            xml += meta["caption"];
+            xml += "</DPIT:assetOption>";
+
             xml += "<DPIT:assetOption name=\"comment\" dataType=\"text\">";
             xml += meta["comment"];
             xml += "</DPIT:assetOption>";
 
             xml += "<DPIT:assetOption name=\"credit\" dataType=\"string\" index=\"true\">";
+            xml += meta["author"];
+            xml += "</DPIT:assetOption>";
+
+            xml += "<DPIT:assetOption name=\"copyright\" dataType=\"string\" index=\"true\">";
             xml += meta["copyright"];
             xml += "</DPIT:assetOption>";
-            
+
             xml += "<DPIT:assetOption name=\"width\" dataType=\"int\">";
             xml += meta["width"];
             xml += "</DPIT:assetOption>";
@@ -102,6 +110,7 @@ namespace Aptoma_Publication_Integrator
 
             string dateTaken = DateTime.Parse(meta.DateTaken).ToString("yyyy-MM-ddTHH:mm:ssZ");
 
+            dict.Add("caption", "");
             dict.Add("author", "");
             dict.Add("copyright", "");
             dict.Add("dateTaken", "");
@@ -113,6 +122,7 @@ namespace Aptoma_Publication_Integrator
 
             try
             {
+                dict["caption"] = meta.Title;
                 dict["author"] = meta.Author[0];
                 dict["copyright"] = meta.Copyright.Replace("\r", ", ");
                 dict["dateTaken"] = dateTaken;
@@ -121,7 +131,7 @@ namespace Aptoma_Publication_Integrator
                 dict["comment"] = meta.Comment;
                 dict["height"] = decoder.Frames[0].PixelHeight.ToString();
                 dict["width"] = decoder.Frames[0].PixelWidth.ToString();
-
+                
                 //dict.Add("title", meta.Title.Replace("\r", ", "));
                 //dict.Add("author", meta.Author[0]);
                 //dict.Add("copyright", meta.Copyright.Replace("\r", ", "));
