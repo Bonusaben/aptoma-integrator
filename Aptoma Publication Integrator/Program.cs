@@ -465,79 +465,79 @@ namespace Aptoma_Publication_Integrator
             
             jw.WriteEndArray();
 
-            // HEADLINES
-            //jw.WritePropertyName("headers");
-            //jw.WriteStartArray();
+            // HEADERS
+            jw.WritePropertyName("headers");
+            jw.WriteStartArray();
 
-            //if (lines.Count > 0)
-            //{
-            //    foreach (string line in lines)
-            //    {
-            //        if (line.Length != 0)
-            //        {
-            //            if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("HEADLINE"))
-            //            {
-            //                string prefix = @"Classified-headers\";
+            if (lines.Count > 0)
+            {
+                foreach (string line in lines)
+                {
+                    if (line.Length != 0)
+                    {
+                        if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("HEADLINE"))
+                        {
+                            string prefix = @"Header\";
 
-            //                jw.WriteStartObject();
+                            jw.WriteStartObject();
 
-            //                jw.WritePropertyName("file");
-            //                jw.WriteValue(prefix + line.Split('\t')[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ".PDF"));
-            //                jw.WritePropertyName("imageFile");
-            //                jw.WriteValue(prefix + line.Split('\t')[6].Split('=')[1].Split('\\').Last().Split('.')[0] + ".jpg");
-            //                jw.WritePropertyName("x");
-            //                jw.WriteValue(float.Parse(line.Split('\t')[0].Split('=')[1], CultureInfo.InvariantCulture));
-            //                jw.WritePropertyName("y");
-            //                jw.WriteValue(float.Parse(line.Split('\t')[1].Split('=')[1], CultureInfo.InvariantCulture));
-            //                jw.WritePropertyName("width");
-            //                jw.WriteValue(float.Parse(line.Split('\t')[2].Split('=')[1], CultureInfo.InvariantCulture));
-            //                jw.WritePropertyName("height");
-            //                jw.WriteValue(float.Parse(line.Split('\t')[3].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("file");
+                            jw.WriteValue(prefix + line.Split('\t')[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ".PDF"));
+                            jw.WritePropertyName("imageFile");
+                            jw.WriteValue(prefix + line.Split('\t')[6].Split('=')[1].Split('\\').Last().Split('.')[0] + ".jpg");
+                            jw.WritePropertyName("x");
+                            jw.WriteValue(float.Parse(line.Split('\t')[0].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("y");
+                            jw.WriteValue(float.Parse(line.Split('\t')[1].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("width");
+                            jw.WriteValue(float.Parse(line.Split('\t')[2].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("height");
+                            jw.WriteValue(float.Parse(line.Split('\t')[3].Split('=')[1], CultureInfo.InvariantCulture));
 
-            //                jw.WriteEndObject();
-            //            }
-            //        }
-            //    }
-            //}
+                            jw.WriteEndObject();
+                        }
+                    }
+                }
+            }
 
-            //jw.WriteEndArray();
+            jw.WriteEndArray();
 
             // FILLERS
-            //jw.WritePropertyName("fillers");
-            //jw.WriteStartArray();
+            jw.WritePropertyName("fillers");
+            jw.WriteStartArray();
 
-            //if (lines.Count > 0)
-            //{
-            //    foreach (string line in lines)
-            //    {
-            //        if (line.Length != 0)
-            //        {
-            //            if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("FILLER"))
-            //            {
-            //                string prefix = @"Fillers\";
+            if (lines.Count > 0)
+            {
+                foreach (string line in lines)
+                {
+                    if (line.Length != 0)
+                    {
+                        if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("FILLER"))
+                        {
+                            string prefix = @"Filler\";
 
-            //                jw.WriteStartObject();
+                            jw.WriteStartObject();
 
-            //                jw.WritePropertyName("file");
-            //                jw.WriteValue(@prefix + line.Split('\t')[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ".PDF"));
-            //                jw.WritePropertyName("imageFile");
-            //                jw.WriteValue(@prefix + line.Split('\t')[6].Split('=')[1].Split('\\').Last().Split('.')[0] + ".jpg");
-            //                jw.WritePropertyName("x");
-            //                jw.WriteValue(float.Parse(line.Split('\t')[0].Split('=')[1], CultureInfo.InvariantCulture));
-            //                jw.WritePropertyName("y");
-            //                jw.WriteValue(float.Parse(line.Split('\t')[1].Split('=')[1], CultureInfo.InvariantCulture));
-            //                jw.WritePropertyName("width");
-            //                jw.WriteValue(float.Parse(line.Split('\t')[2].Split('=')[1], CultureInfo.InvariantCulture));
-            //                jw.WritePropertyName("height");
-            //                jw.WriteValue(float.Parse(line.Split('\t')[3].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("file");
+                            jw.WriteValue(@prefix + line.Split('\t')[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ".PDF"));
+                            jw.WritePropertyName("imageFile");
+                            jw.WriteValue(@prefix + line.Split('\t')[6].Split('=')[1].Split('\\').Last().Split('.')[0] + ".jpg");
+                            jw.WritePropertyName("x");
+                            jw.WriteValue(float.Parse(line.Split('\t')[0].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("y");
+                            jw.WriteValue(float.Parse(line.Split('\t')[1].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("width");
+                            jw.WriteValue(float.Parse(line.Split('\t')[2].Split('=')[1], CultureInfo.InvariantCulture));
+                            jw.WritePropertyName("height");
+                            jw.WriteValue(float.Parse(line.Split('\t')[3].Split('=')[1], CultureInfo.InvariantCulture));
 
-            //                jw.WriteEndObject();
-            //            }
-            //        }
-            //    }
-            //}
+                            jw.WriteEndObject();
+                        }
+                    }
+                }
+            }
 
-            //jw.WriteEndArray();
+            jw.WriteEndArray();
 
             jw.WriteEndObject();
             jw.WriteEndObject();
