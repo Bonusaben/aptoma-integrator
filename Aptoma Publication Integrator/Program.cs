@@ -190,7 +190,8 @@ namespace Aptoma_Publication_Integrator
                         }
                         catch (Exception ex)
                         {
-                            Log(ex.Message);
+                            Log(ex.ToString());
+                            //Log(ex.Message);
                             Log("Skipping file...");
                             skipFile = true;
                         }

@@ -100,13 +100,15 @@ namespace Aptoma_Publication_Integrator
             request.AddParameter(requestBodyParameter.Key, requestBodyParameter.Value, ParameterType.RequestBody);
             
             IRestResponse response = client.Execute(request);
+            //Program.Log("Response: "+response.Content);
             //HttpStatusCode sCode = response.StatusCode;
             string sCode = response.StatusDescription;
-
+            
             result[0] = sCode;
             result[1] = response.Content;
 
             //Program.Log(result[0]);
+            //Program.Log(result[1]);
 
             if (!sCode.Equals("OK"))
             {

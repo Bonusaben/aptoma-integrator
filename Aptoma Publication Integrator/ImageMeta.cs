@@ -19,8 +19,11 @@ namespace Aptoma_Publication_Integrator
             string[] filenameSplit = file.Split('\\');
             string filename = filenameSplit[filenameSplit.Length - 1];
 
+            Program.Log("Getting meta data");
             Dictionary<string, string> meta = GetMetaDict(file);
+            Program.Log("Getting publication info");
             Dictionary<string, string> pubInfo = GetPublicationInfo(filename);
+            Program.Log("Generating XML");
 
             xml += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
             xml += "<DPIT:drpublishImportTransformation xmlns:DPIT=\"http://drpublish.aptoma.no/xml/dpit\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://drpublish.aptoma.no/xml/dpit http://drp-dev.aptoma.no/stefan/drpublish/io/dpit.xsd\">";
@@ -85,7 +88,7 @@ namespace Aptoma_Publication_Integrator
 
             xml += "</DPIT:assetOptions>";
             xml += "</DPIT:meta>";
-
+            Program.Log(xml);
             xml += "<DPIT:contents>";
             xml += "<DPIT:content type=\"default\">";
             xml += "<DPIT:data encoding=\"base64\">";
@@ -123,7 +126,7 @@ namespace Aptoma_Publication_Integrator
             try
             {
                 dict["caption"] = meta.Title;
-                dict["author"] = meta.Author[0];
+                dict["author"] = meta.Author[0];               
                 dict["copyright"] = meta.Copyright.Replace("\r", ", ");
                 dict["dateTaken"] = dateTaken;
                 dict["format"] = meta.Format;
