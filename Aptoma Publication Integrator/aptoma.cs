@@ -85,6 +85,8 @@ namespace Aptoma_Publication_Integrator
         public static string[] AptomaPost(string url, Dictionary<string, string> headers, KeyValuePair<string, string> requestBodyParameter)
         {
             string[] result = new string[2];
+            result[0] = "";
+            result[1] = "";
 
             var client = new RestClient(url);
             var request = new RestRequest(Method.POST);
@@ -102,24 +104,16 @@ namespace Aptoma_Publication_Integrator
             IRestResponse response = client.Execute(request);
             //Program.Log("Response: "+response.Content);
             //HttpStatusCode sCode = response.StatusCode;
-            string sCode = response.StatusDescription;
-            
-            result[0] = sCode;
-            result[1] = response.Content;
-
-            //Program.Log(result[0]);
-            //Program.Log(result[1]);
-
-            if (!sCode.Equals("OK"))
+            string sCode = "";
+            try
             {
-                Program.Log(result[0] + " - " +result[1]);
+                result[0] = response.StatusDescription;
+                result[1] = response.Content;
+            } catch(Exception ex)
+            {
+                Program.Log(ex.Message);
             }
-
-            //if (sCode.Equals("Bad Request") || sCode.Equals("Forbidden") || sCode.Equals("Unauthorized"))
-            //{                
-            //    Program.Log(result[1]);
-            //}
-
+            
             return result;
         }
 

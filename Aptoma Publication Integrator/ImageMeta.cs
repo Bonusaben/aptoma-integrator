@@ -88,7 +88,7 @@ namespace Aptoma_Publication_Integrator
 
             xml += "</DPIT:assetOptions>";
             xml += "</DPIT:meta>";
-            Program.Log(xml);
+            //Program.Log(xml);
             xml += "<DPIT:contents>";
             xml += "<DPIT:content type=\"default\">";
             xml += "<DPIT:data encoding=\"base64\">";
@@ -114,7 +114,7 @@ namespace Aptoma_Publication_Integrator
             string dateTaken = DateTime.Parse(meta.DateTaken).ToString("yyyy-MM-ddTHH:mm:ssZ");
 
             dict.Add("caption", "");
-            dict.Add("author", "");
+            dict.Add("author", "ukendt");
             dict.Add("copyright", "");
             dict.Add("dateTaken", "");
             dict.Add("format", "");
@@ -126,7 +126,10 @@ namespace Aptoma_Publication_Integrator
             try
             {
                 dict["caption"] = meta.Title;
-                dict["author"] = meta.Author[0];               
+                if (meta.Author != null)
+                {
+                    dict["author"] = meta.Author[0];
+                }
                 dict["copyright"] = meta.Copyright.Replace("\r", ", ");
                 dict["dateTaken"] = dateTaken;
                 dict["format"] = meta.Format;
