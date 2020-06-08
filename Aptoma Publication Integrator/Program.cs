@@ -99,7 +99,7 @@ namespace Aptoma_Publication_Integrator
             {
                 WORKING = true;
 
-                FILELIST = new List<string>(Directory.GetFiles(INPUTDIR));
+                FILELIST = new List<string>(Directory.GetFiles(INPUTDIR).OrderBy(d => new FileInfo(d).CreationTime));
 
                 if (FILELIST.Count > 0)
                 {
