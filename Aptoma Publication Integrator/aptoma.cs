@@ -104,14 +104,14 @@ namespace Aptoma_Publication_Integrator
             IRestResponse response = client.Execute(request);
             //Program.Log("Response: "+response.Content);
             //HttpStatusCode sCode = response.StatusCode;
-            string sCode = "";
-            try
+
+            if (response.StatusDescription!=null)
             {
                 result[0] = response.StatusDescription;
                 result[1] = response.Content;
-            } catch(Exception ex)
+            } else
             {
-                Program.Log(ex.Message);
+                Program.Log("Response from server empty!");
             }
             
             return result;
