@@ -130,6 +130,7 @@ namespace Aptoma_Publication_Integrator
                                 else
                                 {
                                     Log("Error uploading page!");
+                                    Log("Server response: " + response[0]);
                                     Log("Moving " + fileName + " to error folder.");
                                     File.Copy(file, ERRORDIR + "\\" + fileName, true);
                                 }
