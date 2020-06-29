@@ -99,7 +99,7 @@ namespace Aptoma_Publication_Integrator
             xml += "</DPIT:asset>";
             xml += "</DPIT:drpublishImportTransformation>";
 
-            return xml;
+            return EscapeString(xml);
         }
 
         static Dictionary<string,string> GetMetaDict(string file)
@@ -253,6 +253,16 @@ namespace Aptoma_Publication_Integrator
             dict.Add("title", title);
 
             return dict;
+        }
+
+        static string EscapeString(string s)
+        {
+            string newString = s;
+            newString = newString.Replace("&", @"&amp;");
+            newString = newString.Replace("\n", " ");
+            newString = newString.Replace("\r", " ");
+
+            return newString;
         }
     }
 }
