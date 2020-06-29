@@ -586,7 +586,7 @@ namespace Aptoma_Publication_Integrator
 
             OracleConnection con = new OracleConnection(@CONNECTIONSTRING);
 
-            string query = @"SELECT OP_PrFlowCode FROM F_OrProdFlow WHERE OP_ONo=" + orderNr + " AND OP_PrFlowCode='UGEBG'";
+            string query = @"SELECT OP_PrFlowCode FROM F_OrProdFlow WHERE OP_ONo=" + orderNr + " AND OP_PrFlowCode='UGEB'";
             OracleCommand command = new OracleCommand(query, con);
 
             try
