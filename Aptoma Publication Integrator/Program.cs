@@ -33,6 +33,8 @@ namespace Aptoma_Publication_Integrator
         static string DBURL, DBPORT, DBUSER, DBPASS;
         static string CONNECTIONSTRING;
 
+        static string DATEFROMFRILENAME;
+
         static void Main(string[] args)
         {
             LoadSettings();
@@ -121,6 +123,7 @@ namespace Aptoma_Publication_Integrator
                             if (extension.Substring(0, 1).ToLower().Equals("p"))
                             {
                                 Log("Processing pdl file: " + fileName);
+                                DATEFROMFRILENAME = GetDateFromFilename(fileName);
                                 string json = ConvertPDLtoJSON(file);
                                 string[] response = Aptoma.PostPage(json);
                                 if (response[0].Equals("OK"))
@@ -557,8 +560,11 @@ namespace Aptoma_Publication_Integrator
 
             OracleConnection con = new OracleConnection(@CONNECTIONSTRING);
 
+            //SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =:orno AND OD_ISSUE_DATE = TO_DATE(:thedate, 'YYYY-MM-DD')
             string query = @"SELECT OWK_SearchValue FROM F_OrderWDetSK JOIN F_OrderWAdOrg ON OWK_AdOrgID=OWO_OrgID WHERE OWK_SearchKeyID=4 AND OWK_SearchValue NOT LIKE '%@%' AND OWK_SearchValue LIKE '%.%' AND OWO_ONo=" + orderNr + " AND rownum <= 1";
-            OracleCommand command = new OracleCommand(query, con);
+            string queryNEW = @"SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =:orno AND OD_ISSUE_DATE = TO_DATE("+ DATEFROMFRILENAME + ", 'YYYY-MM-DD')";
+            
+            OracleCommand command = new OracleCommand(queryNEW, con);
 
             try
             {
@@ -575,6 +581,30 @@ namespace Aptoma_Publication_Integrator
             catch (Exception ex)
             {
                 Log("Unable to get link from database");
+            }
+
+            if (link.Length.Equals(0))
+            {
+                Log("Link length to short. Reverting to old method");
+
+                command = new OracleCommand(query, con);
+
+                try
+                {
+                    con.Open();
+                    OracleDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        link = (string)reader.GetValue(0);
+                    }
+                    //Console.WriteLine("Link for ordernumber " + orderNr + ": " + link);
+
+                    con.Close();
+                }
+                catch (Exception ex)
+                {
+                    Log("Unable to get link from database");
+                }
             }
 
             return link;
@@ -632,6 +662,14 @@ namespace Aptoma_Publication_Integrator
             }
         }
 
-        
+        static string GetDateFromFilename(string fileName)
+        {
+            //ABCJFM0T171819A11A001.pdl
+            string day = fileName.Substring(8, 2);
+            string month = fileName.Substring(10, 2);
+            string year = "20"+fileName.Substring(12, 2);
+
+            return year + "-" + month + "-" + day;
+        }
     }
 }
