@@ -33,7 +33,7 @@ namespace Aptoma_Publication_Integrator
         static string DBURL, DBPORT, DBUSER, DBPASS;
         static string CONNECTIONSTRING;
 
-        static string DATEFROMFRILENAME;
+        static string DATEFORSQL;
 
         static void Main(string[] args)
         {
@@ -123,7 +123,6 @@ namespace Aptoma_Publication_Integrator
                             if (extension.Substring(0, 1).ToLower().Equals("p"))
                             {
                                 Log("Processing pdl file: " + fileName);
-                                DATEFROMFRILENAME = GetDateFromFilename(fileName);
                                 string json = ConvertPDLtoJSON(file);
                                 string[] response = Aptoma.PostPage(json);
                                 if (response[0].Equals("OK"))
@@ -342,11 +341,15 @@ namespace Aptoma_Publication_Integrator
 
             // Get the date
             string date = lines[0].Split('\t')[0].Split('=')[1];
+            
             int year = Int32.Parse(date.Substring(0, 4));
             int month = Int32.Parse(date.Substring(4, 2));
             int day = Int32.Parse(date.Substring(6, 2));
+
             DateTime d = new DateTime(year, month, day);
             date = d.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+            DATEFORSQL = GetDateForSQL(year, month, day);
 
             // Start building the JSON
             StringBuilder sb = new StringBuilder();
@@ -390,7 +393,7 @@ namespace Aptoma_Publication_Integrator
                 {
                     if (line.Length != 0)
                     {
-                        if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("EPS"))
+                        if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("EPS") || line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("EPS"))
                         {
                             int orderNr = Int32.Parse(line.Split('\t')[8].Split('=')[1].Split(',')[0]);
 
@@ -557,14 +560,39 @@ namespace Aptoma_Publication_Integrator
         static string OrderLinkLookup(int orderNr)
         {
             string link = "";
+            string newLink = "";
 
             OracleConnection con = new OracleConnection(@CONNECTIONSTRING);
 
             //SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =:orno AND OD_ISSUE_DATE = TO_DATE(:thedate, 'YYYY-MM-DD')
             string query = @"SELECT OWK_SearchValue FROM F_OrderWDetSK JOIN F_OrderWAdOrg ON OWK_AdOrgID=OWO_OrgID WHERE OWK_SearchKeyID=4 AND OWK_SearchValue NOT LIKE '%@%' AND OWK_SearchValue LIKE '%.%' AND OWO_ONo=" + orderNr + " AND rownum <= 1";
-            string queryNEW = @"SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =:orno AND OD_ISSUE_DATE = TO_DATE("+ DATEFROMFRILENAME + ", 'YYYY-MM-DD')";
-            
+            string queryNEW = @"SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =" + orderNr + " AND OD_ISSUE_DATE = TO_DATE('" + DATEFORSQL + "', 'YYYY-MM-DD')";
+            //string queryNEW = @"SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =" + orderNr + " AND OD_ISSUE_DATE = " + DATEFORSQL;
+
             OracleCommand command = new OracleCommand(queryNEW, con);
+
+            try
+            {
+                con.Open();
+                OracleDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    newLink = (string)reader.GetValue(0);
+                }
+
+                con.Close();
+            }
+            catch (Exception ex)
+            {
+                con.Close();
+                //Log("Unable to get link from database");
+                Console.WriteLine("Unable to get link with new method");
+                //Console.WriteLine("Message: " + ex.Message);
+            }
+            
+
+
+            command = new OracleCommand(query, con);
 
             try
             {
@@ -574,37 +602,23 @@ namespace Aptoma_Publication_Integrator
                 {
                     link = (string)reader.GetValue(0);
                 }
-                //Console.WriteLine("Link for ordernumber " + orderNr + ": " + link);
-
+                
                 con.Close();
             }
             catch (Exception ex)
             {
-                Log("Unable to get link from database");
+                con.Close();
+                //Log("Unable to get link from database");
+                Console.WriteLine("Unable to get link with old method");
+                //Console.WriteLine("Message: " + ex.Message);
             }
 
-            if (link.Length.Equals(0))
+            Console.WriteLine("New link: " + newLink);
+            Console.WriteLine("Old link; " + link);
+
+            if (newLink.Length > 0)
             {
-                Log("Link length to short. Reverting to old method");
-
-                command = new OracleCommand(query, con);
-
-                try
-                {
-                    con.Open();
-                    OracleDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        link = (string)reader.GetValue(0);
-                    }
-                    //Console.WriteLine("Link for ordernumber " + orderNr + ": " + link);
-
-                    con.Close();
-                }
-                catch (Exception ex)
-                {
-                    Log("Unable to get link from database");
-                }
+                link = newLink;
             }
 
             return link;
@@ -661,15 +675,15 @@ namespace Aptoma_Publication_Integrator
                 sw.Close();
             }
         }
-
-        static string GetDateFromFilename(string fileName)
+        
+        static string GetDateForSQL(int year, int month, int day)
         {
-            //ABCJFM0T171819A11A001.pdl
-            string day = fileName.Substring(8, 2);
-            string month = fileName.Substring(10, 2);
-            string year = "20"+fileName.Substring(12, 2);
+            DateTime myDateTime = new DateTime(year, month, day);
+            string sqlFormattedDate = myDateTime.ToString("yyyy-MM-dd");
+            //string sqlFormattedDate = myDateTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            return year + "-" + month + "-" + day;
+            return sqlFormattedDate;
+            //return "2021-01-20";
         }
     }
 }
