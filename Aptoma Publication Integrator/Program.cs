@@ -21,6 +21,7 @@ namespace Aptoma_Publication_Integrator
         static string ERRORDIR;
         static string LOGFILE;
         static string OUTPUTDIR;
+        static string XMLURLDIR;
 
         static Timer TIMER;
         static int TIMERINTERVAL = 5000; // Milliseconds
@@ -29,6 +30,7 @@ namespace Aptoma_Publication_Integrator
 
         static bool WORKING = false;
         static bool SAVEOUTPUT = false;
+        static bool DEBUG = false;
 
         static string DBURL, DBPORT, DBUSER, DBPASS;
         static string CONNECTIONSTRING;
@@ -62,8 +64,10 @@ namespace Aptoma_Publication_Integrator
             LOGFILE = appSettings.Get("LOGFILE");
             TIMERINTERVAL = Int32.Parse(appSettings.Get("TIMERINTERVAL"));
 
+            DEBUG = Boolean.Parse(appSettings.Get("DEBUG"));
             SAVEOUTPUT = Boolean.Parse(appSettings.Get("SAVEOUTPUT"));
             OUTPUTDIR = appSettings.Get("OUTPUTDIR");
+            XMLURLDIR = appSettings.Get("XMLURL");
 
             if (INPUTDIR.Substring(INPUTDIR.Length - 1) != "\\")
             {
@@ -76,6 +80,10 @@ namespace Aptoma_Publication_Integrator
             if (OUTPUTDIR.Substring(OUTPUTDIR.Length - 1) != "\\")
             {
                 OUTPUTDIR += "\\";
+            }
+            if (XMLURLDIR.Substring(OUTPUTDIR.Length - 1) != "\\")
+            {
+                XMLURLDIR += "\\";
             }
 
             DBURL = appSettings.Get("DBURL");
@@ -341,7 +349,11 @@ namespace Aptoma_Publication_Integrator
 
             // Get the date
             string date = lines[0].Split('\t')[0].Split('=')[1];
-            
+
+            // Filename for link lookup in XML files
+            string xmlFilename = lines[0].Split('\t')[3].Split('=')[1] + "_" + date.Substring(0, 4) + "-" + date.Substring(4, 2) + "-" + date.Substring(6, 2) + ".xml"; //FT_2022-01-14.xml
+
+
             int year = Int32.Parse(date.Substring(0, 4));
             int month = Int32.Parse(date.Substring(4, 2));
             int day = Int32.Parse(date.Substring(6, 2));
@@ -380,6 +392,7 @@ namespace Aptoma_Publication_Integrator
             jw.WriteValue(lines[0].Split('\t')[1].Split('=')[1]);
             jw.WriteEndObject();
 
+            
             // Removes the page info, so we can loop through the ads
             lines.Remove(lines[0]);
 
@@ -399,7 +412,7 @@ namespace Aptoma_Publication_Integrator
 
                             // X=274.97	Y=615.13	dX=243.78	dY=212.6	Class=1	Type=EPS,A	File=\\jf.medier\Data\CrossAd\JFMDB-data\eps\6\5\015628556.EPS	Id=3	String=15628556,FORB1,Kolding Mægleren ApS,2x75,CMYK,Forsider 2020	
 
-                            string url = OrderLinkLookup(orderNr);
+                            string url = OrderLinkLookup(orderNr, xmlFilename); 
                             bool unpaid = OrderPaidLookup(orderNr);
 
                             //string prefix = @"Ads\";
@@ -557,11 +570,10 @@ namespace Aptoma_Publication_Integrator
             return sb.ToString();
         }
 
-        static string OrderLinkLookup(int orderNr)
+        static string OrderLinkLookup(int orderNr,string xmlFilename)
         {
             string link = "";
-            string newLink = "";
-
+            
             OracleConnection con = new OracleConnection(@CONNECTIONSTRING);
 
             //SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =:orno AND OD_ISSUE_DATE = TO_DATE(:thedate, 'YYYY-MM-DD')
@@ -577,7 +589,7 @@ namespace Aptoma_Publication_Integrator
                 OracleDataReader reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    newLink = (string)reader.GetValue(0);
+                    link = (string)reader.GetValue(0);
                 }
 
                 con.Close();
@@ -591,37 +603,73 @@ namespace Aptoma_Publication_Integrator
             }
             
 
-
-            command = new OracleCommand(query, con);
-
-            try
+            if (link.Length == 0)
             {
-                con.Open();
-                OracleDataReader reader = command.ExecuteReader();
-                while (reader.Read())
+                command = new OracleCommand(query, con);
+
+                try
                 {
-                    link = (string)reader.GetValue(0);
+                    con.Open();
+                    OracleDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        link = (string)reader.GetValue(0);
+                    }
+
+                    con.Close();
                 }
-                
-                con.Close();
+                catch (Exception ex)
+                {
+                    con.Close();
+                    //Log("Unable to get link from database");
+                    Console.WriteLine("Unable to get link with old method");
+                    //Console.WriteLine("Message: " + ex.Message);
+                }
             }
-            catch (Exception ex)
+
+            if (link.Length == 0)
             {
-                con.Close();
-                //Log("Unable to get link from database");
-                Console.WriteLine("Unable to get link with old method");
-                //Console.WriteLine("Message: " + ex.Message);
+                // Get link from XML file
+                link = GetLinkFromXML(orderNr, xmlFilename);
             }
 
-            Console.WriteLine("New link: " + newLink);
-            Console.WriteLine("Old link; " + link);
 
-            if (newLink.Length > 0)
-            {
-                link = newLink;
-            }
-
+            Console.WriteLine("Link: " + link);
             return link;
+        }
+
+        static string GetLinkFromXML(int orderNr,string xmlFilename)
+        {
+            string urlFromXml = "";
+            List<string> lines = new List<string>();
+
+            if (File.Exists(XMLURLDIR + xmlFilename))
+            {
+                Console.WriteLine("XMLURL file exists");
+                
+                var reader = new StreamReader(XMLURLDIR + xmlFilename, Encoding.GetEncoding("windows-1252"));
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    lines.Add(line);
+                }
+                reader.Close();
+            }
+
+            if (lines.Count > 0)
+            {
+                for (int i = 0; i < lines.Count; i++){
+                    if (lines[i].Contains(orderNr.ToString()))
+                    {
+                        //<homepage>https://www.femoekro.dk/</homepage>
+                        urlFromXml = lines[i + 1].Split('>')[1].Split('<')[0];
+                        break;
+                    }
+                }
+            }
+            
+
+            return urlFromXml;
         }
 
         static bool OrderPaidLookup(int orderNr)
