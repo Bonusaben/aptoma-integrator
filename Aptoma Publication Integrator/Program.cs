@@ -393,7 +393,7 @@ namespace Aptoma_Publication_Integrator
                 {
                     if (line.Length != 0)
                     {
-                        if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("EPS") || line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("EPS"))
+                        if (line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("EPS") || line.Split('\t')[5].Split('=')[1].Split(',')[0].Equals("PDF"))
                         {
                             int orderNr = Int32.Parse(line.Split('\t')[8].Split('=')[1].Split(',')[0]);
 
