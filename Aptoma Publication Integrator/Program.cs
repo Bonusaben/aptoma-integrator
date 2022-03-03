@@ -48,6 +48,11 @@ namespace Aptoma_Publication_Integrator
                 Log("ATTENTION! SAVEOUTPUT is set to true. All files will be saved in " + OUTPUTDIR);
             }
 
+            if (DEBUG)
+            {
+                Log("PROGRAM IS IN DEBUG MODE! Info will not be sent to Aptoma");
+            }
+
             Console.Write("Press <Escape> to exit...\n");
             while (Console.ReadKey().Key != ConsoleKey.Escape) { }
         }
@@ -67,7 +72,7 @@ namespace Aptoma_Publication_Integrator
             DEBUG = Boolean.Parse(appSettings.Get("DEBUG"));
             SAVEOUTPUT = Boolean.Parse(appSettings.Get("SAVEOUTPUT"));
             OUTPUTDIR = appSettings.Get("OUTPUTDIR");
-            XMLURLDIR = appSettings.Get("XMLURL");
+            XMLURLDIR = appSettings.Get("XMLURLDIR");
 
             if (INPUTDIR.Substring(INPUTDIR.Length - 1) != "\\")
             {
@@ -81,7 +86,7 @@ namespace Aptoma_Publication_Integrator
             {
                 OUTPUTDIR += "\\";
             }
-            if (XMLURLDIR.Substring(OUTPUTDIR.Length - 1) != "\\")
+            if (XMLURLDIR.Substring(XMLURLDIR.Length - 1) != "\\")
             {
                 XMLURLDIR += "\\";
             }
@@ -132,17 +137,21 @@ namespace Aptoma_Publication_Integrator
                             {
                                 Log("Processing pdl file: " + fileName);
                                 string json = ConvertPDLtoJSON(file);
-                                string[] response = Aptoma.PostPage(json);
-                                if (response[0].Equals("OK"))
+
+                                if (!DEBUG)
                                 {
-                                    Log("Page successfully uploaded");
-                                }
-                                else
-                                {
-                                    Log("Error uploading page!");
-                                    Log("Server response: " + response[0]);
-                                    Log("Moving " + fileName + " to error folder.");
-                                    File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                                    string[] response = Aptoma.PostPage(json);
+                                    if (response[0].Equals("OK"))
+                                    {
+                                        Log("Page successfully uploaded");
+                                    }
+                                    else
+                                    {
+                                        Log("Error uploading page!");
+                                        Log("Server response: " + response[0]);
+                                        Log("Moving " + fileName + " to error folder.");
+                                        File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                                    }
                                 }
 
                                 if (SAVEOUTPUT)
@@ -154,17 +163,21 @@ namespace Aptoma_Publication_Integrator
                             {
                                 Log("Processing xml file: " + fileName);
                                 string json = ConvertXMLToJson(file);
-                                string[] response = Aptoma.PostEdition(json);
-                                if (response[0].Equals("OK"))
+
+                                if (!DEBUG)
                                 {
-                                    Log("Edition successfully uploaded");
-                                }
-                                else
-                                {
-                                    Log("Error uploading edition!");
-                                    Log("Server response: " + response[0]);
-                                    Log("Moving " + fileName + " to error folder.");
-                                    File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                                    string[] response = Aptoma.PostEdition(json);
+                                    if (response[0].Equals("OK"))
+                                    {
+                                        Log("Edition successfully uploaded");
+                                    }
+                                    else
+                                    {
+                                        Log("Error uploading edition!");
+                                        Log("Server response: " + response[0]);
+                                        Log("Moving " + fileName + " to error folder.");
+                                        File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                                    }
                                 }
 
                                 if (SAVEOUTPUT)
@@ -176,17 +189,21 @@ namespace Aptoma_Publication_Integrator
                             {
                                 Log("Processing jpg file: " + fileName);
                                 string xml = ImageMeta.GetImageXml(file);
-                                string[] response = Aptoma.PostImage(xml);
-                                if (response[0].Equals("OK"))
+
+                                if (!DEBUG)
                                 {
-                                    Log("Image successfully uploaded");
-                                }
-                                else
-                                {
-                                    Log("Error uploading image!");
-                                    Log("Server response: " + response[0]);
-                                    Log("Moving " + fileName + " to error folder.");
-                                    File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                                    string[] response = Aptoma.PostImage(xml);
+                                    if (response[0].Equals("OK"))
+                                    {
+                                        Log("Image successfully uploaded");
+                                    }
+                                    else
+                                    {
+                                        Log("Error uploading image!");
+                                        Log("Server response: " + response[0]);
+                                        Log("Moving " + fileName + " to error folder.");
+                                        File.Copy(file, ERRORDIR + "\\" + fileName, true);
+                                    }
                                 }
 
                                 if (SAVEOUTPUT)
@@ -598,7 +615,7 @@ namespace Aptoma_Publication_Integrator
             {
                 con.Close();
                 //Log("Unable to get link from database");
-                Console.WriteLine("Unable to get link with new method");
+                //Console.WriteLine("Unable to get link with new method");
                 //Console.WriteLine("Message: " + ex.Message);
             }
             
@@ -622,7 +639,7 @@ namespace Aptoma_Publication_Integrator
                 {
                     con.Close();
                     //Log("Unable to get link from database");
-                    Console.WriteLine("Unable to get link with old method");
+                    //Console.WriteLine("Unable to get link with old method");
                     //Console.WriteLine("Message: " + ex.Message);
                 }
             }
@@ -633,8 +650,11 @@ namespace Aptoma_Publication_Integrator
                 link = GetLinkFromXML(orderNr, xmlFilename);
             }
 
-
-            Console.WriteLine("Link: " + link);
+            if (link.Length > 0)
+            {
+                Console.WriteLine("Link: " + link);
+            }
+            
             return link;
         }
 
@@ -645,8 +665,11 @@ namespace Aptoma_Publication_Integrator
 
             if (File.Exists(XMLURLDIR + xmlFilename))
             {
-                Console.WriteLine("XMLURL file exists");
-                
+                if (DEBUG)
+                {
+                    Log("XMLURL file exists");
+                }
+
                 var reader = new StreamReader(XMLURLDIR + xmlFilename, Encoding.GetEncoding("windows-1252"));
                 while (!reader.EndOfStream)
                 {
@@ -654,15 +677,50 @@ namespace Aptoma_Publication_Integrator
                     lines.Add(line);
                 }
                 reader.Close();
+            } else
+            {
+                if (DEBUG)
+                {
+                    Log("XMLURL file does not exist");
+                }
+            }
+
+            // if single-line xml split it
+            bool multiLine = true;
+            if (lines.Count == 1)
+            {
+                lines = lines[0].Split(new string[] { "<homepage>" }, StringSplitOptions.None).ToList();
+                multiLine = false;
             }
 
             if (lines.Count > 0)
             {
+                if (DEBUG)
+                {
+                    Console.WriteLine("Numner of lines in xml: "+lines.Count);
+                    Console.WriteLine("Searching for orderNr: "+orderNr.ToString());
+                }
                 for (int i = 0; i < lines.Count; i++){
+                    if (DEBUG)
+                    {
+                        Console.WriteLine("Line " + i + ": " + lines[i]);
+                    }
                     if (lines[i].Contains(orderNr.ToString()))
                     {
+                        if (DEBUG)
+                        {
+                            Console.WriteLine("orderNr found!");
+                        }
+
                         //<homepage>https://www.femoekro.dk/</homepage>
-                        urlFromXml = lines[i + 1].Split('>')[1].Split('<')[0];
+                        if (multiLine)
+                        {
+                            urlFromXml = lines[i + 1].Split('>')[1].Split('<')[0];
+                        } else
+                        {
+                            urlFromXml = lines[i + 1].Split('<')[0];
+                        }
+                        
                         break;
                     }
                 }
