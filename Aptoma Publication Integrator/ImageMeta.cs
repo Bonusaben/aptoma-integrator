@@ -111,7 +111,15 @@ namespace Aptoma_Publication_Integrator
             //BitmapDecoder decoder = new JpegBitmapDecoder(new FileStream(file, FileMode.Open), BitmapCreateOptions.None, BitmapCacheOption.None);
             BitmapMetadata meta = (BitmapMetadata)decoder.Frames[0].Metadata;
 
-            string dateTaken = DateTime.Parse(meta.DateTaken).ToString("yyyy-MM-ddTHH:mm:ssZ");
+            string dateTaken = "";
+            try
+            {
+                dateTaken = DateTime.Parse(meta.DateTaken).ToString("yyyy-MM-ddTHH:mm:ssZ");
+            } catch(Exception ex)
+            {
+
+            }
+            
 
             dict.Add("caption", "");
             dict.Add("author", "ukendt");

@@ -22,7 +22,8 @@ namespace Aptoma_Publication_Integrator
         static string LOGFILE;
         static string OUTPUTDIR;
         static string XMLURLDIR;
-
+        static string XMLNAMESPACE;
+        
         static Timer TIMER;
         static int TIMERINTERVAL = 5000; // Milliseconds
 
@@ -73,6 +74,7 @@ namespace Aptoma_Publication_Integrator
             SAVEOUTPUT = Boolean.Parse(appSettings.Get("SAVEOUTPUT"));
             OUTPUTDIR = appSettings.Get("OUTPUTDIR");
             XMLURLDIR = appSettings.Get("XMLURLDIR");
+            XMLNAMESPACE = appSettings.Get("XMLNAMESPACE");
 
             if (INPUTDIR.Substring(INPUTDIR.Length - 1) != "\\")
             {
@@ -259,7 +261,8 @@ namespace Aptoma_Publication_Integrator
             xmlDoc.Load(file);
 
             XmlNamespaceManager xmlnsManager = new XmlNamespaceManager(xmlDoc.NameTable);
-            xmlnsManager.AddNamespace("ns", "http://www.ccieurope.com/xmlns/CCIPlanner");
+            //xmlnsManager.AddNamespace("ns", "http://www.ccieurope.com/xmlns/CCIPlanner");
+            xmlnsManager.AddNamespace("ns", XMLNAMESPACE);
 
             XmlNode root = xmlDoc.DocumentElement;
 
