@@ -7,6 +7,7 @@ using System.Text;
 using System.Xml;
 using System.Windows.Media.Imaging;
 using System.Globalization;
+using System.Security.Cryptography;
 
 namespace Aptoma_Publication_Integrator
 {
@@ -18,6 +19,8 @@ namespace Aptoma_Publication_Integrator
             string base64 = ImageToBase64(file);
             string[] filenameSplit = file.Split('\\');
             string filename = filenameSplit[filenameSplit.Length - 1];
+            byte[] md5 = GetImageMD5(file);
+            string md5String = BytesToString(md5);
 
             Program.Log("Getting meta data");
             Dictionary<string, string> meta = GetMetaDict(file);
@@ -37,6 +40,12 @@ namespace Aptoma_Publication_Integrator
             xml += filename;
             xml += "</DPIT:fileName>";
             xml += "<DPIT:mimeType>image/jpeg</DPIT:mimeType>";
+
+            xml += "<externalId>";
+            xml += md5String;
+            xml += "</externalId>";
+
+            xml += "<provider>JFM</provider>";
 
             xml += "<DPIT:assetOptions>";
 
@@ -64,7 +73,7 @@ namespace Aptoma_Publication_Integrator
             xml += meta["comment"];
             xml += "</DPIT:assetOption>";
 
-            xml += "<DPIT:assetOption name=\"credit\" dataType=\"string\" index=\"true\">";
+            xml += "<DPIT:assetOption name=\"credit\" dataType=\"text\" index=\"true\">";
             xml += meta["author"];
             xml += "</DPIT:assetOption>";
 
@@ -100,6 +109,24 @@ namespace Aptoma_Publication_Integrator
             xml += "</DPIT:drpublishImportTransformation>";
 
             return EscapeString(xml);
+        }
+
+        static byte[] GetImageMD5(string file)
+        {
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(file))
+                {
+                    return md5.ComputeHash(stream);
+                }
+            }
+        }
+
+        static string BytesToString(byte[] bytes)
+        {
+            string result = "";
+            foreach (byte b in bytes) result += b.ToString();
+            return result;
         }
 
         static Dictionary<string,string> GetMetaDict(string file)

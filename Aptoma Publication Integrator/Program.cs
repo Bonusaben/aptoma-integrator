@@ -596,10 +596,9 @@ namespace Aptoma_Publication_Integrator
             
             OracleConnection con = new OracleConnection(@CONNECTIONSTRING);
 
-            //SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =:orno AND OD_ISSUE_DATE = TO_DATE(:thedate, 'YYYY-MM-DD')
             string query = @"SELECT OWK_SearchValue FROM F_OrderWDetSK JOIN F_OrderWAdOrg ON OWK_AdOrgID=OWO_OrgID WHERE OWK_SearchKeyID=4 AND OWK_SearchValue NOT LIKE '%@%' AND OWK_SearchValue LIKE '%.%' AND OWO_ONo=" + orderNr + " AND rownum <= 1";
-            string queryNEW = @"SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =" + orderNr + " AND OD_ISSUE_DATE = TO_DATE('" + DATEFORSQL + "', 'YYYY-MM-DD')";
-            //string queryNEW = @"SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =" + orderNr + " AND OD_ISSUE_DATE = " + DATEFORSQL;
+            string queryNEW = @"SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =" + orderNr + " AND OD_ISSUE_DATE = TO_DATE('" + DATEFORSQL + "', 'YYYY-MM-DD') AND OD_URL IS NOT NULL";
+            //string queryNEW = @"SELECT OD_URL FROM F_OrderDet WHERE OD_ONO =" + orderNr + " AND OD_ISSUE_DATE = TO_DATE('" + DATEFORSQL + "', 'YYYY-MM-DD')";
 
             OracleCommand command = new OracleCommand(queryNEW, con);
 
@@ -713,6 +712,8 @@ namespace Aptoma_Publication_Integrator
                         if (DEBUG)
                         {
                             Console.WriteLine("orderNr found!");
+                            Console.WriteLine("Line number: " + i);
+                            Console.WriteLine("Multiline XML: " + multiLine);
                         }
 
                         //<homepage>https://www.femoekro.dk/</homepage>
