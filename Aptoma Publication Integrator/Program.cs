@@ -33,7 +33,7 @@ namespace Aptoma_Publication_Integrator
         static bool SAVEOUTPUT = false;
         static bool DEBUG = false;
 
-        static string DBURL, DBPORT, DBUSER, DBPASS;
+        static string DBURL, DBPORT, DBSERVICE, DBUSER, DBPASS;
         static string CONNECTIONSTRING;
 
         static string DATEFORSQL;
@@ -95,10 +95,12 @@ namespace Aptoma_Publication_Integrator
 
             DBURL = appSettings.Get("DBURL");
             DBPORT = appSettings.Get("DBPORT");
+            DBSERVICE = appSettings.Get("DBSERVICE");
             DBUSER = appSettings.Get("DBUSER");
             DBPASS = appSettings.Get("DBPASS");
 
-            CONNECTIONSTRING = @"Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=" + DBURL + ")(PORT=" + DBPORT + ")))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=JFMDB)));User Id=" + DBUSER + ";Password=" + DBPASS;
+            CONNECTIONSTRING = @"Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=" + DBURL + ")(PORT=" + DBPORT + ")))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=" + DBSERVICE + ")));User Id=" + DBUSER + ";Password=" + DBPASS;
+            Console.WriteLine("Connection string: " + CONNECTIONSTRING);
         }
 
         static void StartPolling()
@@ -592,6 +594,7 @@ namespace Aptoma_Publication_Integrator
 
         static string OrderLinkLookup(int orderNr,string xmlFilename)
         {
+            
             string link = "";
             
             OracleConnection con = new OracleConnection(@CONNECTIONSTRING);
@@ -618,7 +621,7 @@ namespace Aptoma_Publication_Integrator
                 con.Close();
                 //Log("Unable to get link from database");
                 //Console.WriteLine("Unable to get link with new method");
-                //Console.WriteLine("Message: " + ex.Message);
+                Console.WriteLine("Message: " + ex.Message);
             }
             
 

@@ -97,7 +97,10 @@ namespace Aptoma_Publication_Integrator
                 {
                     request.AddHeader(header.Key, header.Value);
                 }
-            }            
+            }
+
+            //For testing v11 changes
+            //request.AddHeader("api-version", "11");
 
             request.AddParameter(requestBodyParameter.Key, requestBodyParameter.Value, ParameterType.RequestBody);
             
