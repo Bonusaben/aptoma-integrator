@@ -41,13 +41,13 @@ namespace Aptoma_Publication_Integrator
             xml += "</DPIT:fileName>";
             xml += "<DPIT:mimeType>image/jpeg</DPIT:mimeType>";
 
-            /*
-            xml += "<externalId>";
+            
+            xml += "<DPIT:externalId>";
             xml += md5String;
-            xml += "</externalId>";
+            xml += "</DPIT:externalId>";
 
-            xml += "<provider>JFM</provider>";
-            */
+            xml += "<DPIT:provider>JFM</DPIT:provider>";
+            
 
             xml += "<DPIT:assetOptions>";
 

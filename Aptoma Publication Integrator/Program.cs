@@ -100,7 +100,7 @@ namespace Aptoma_Publication_Integrator
             DBPASS = appSettings.Get("DBPASS");
 
             CONNECTIONSTRING = @"Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=" + DBURL + ")(PORT=" + DBPORT + ")))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=" + DBSERVICE + ")));User Id=" + DBUSER + ";Password=" + DBPASS;
-            Console.WriteLine("Connection string: " + CONNECTIONSTRING);
+            //Console.WriteLine("Connection string: " + CONNECTIONSTRING);
         }
 
         static void StartPolling()
@@ -740,7 +740,7 @@ namespace Aptoma_Publication_Integrator
         static bool OrderPaidLookup(int orderNr)
         {
             bool unpaid = false;
-
+            
             OracleConnection con = new OracleConnection(@CONNECTIONSTRING);
 
             string query = @"SELECT OP_PrFlowCode FROM F_OrProdFlow WHERE OP_ONo=" + orderNr + " AND OP_PrFlowCode='UGEB'";
@@ -763,7 +763,7 @@ namespace Aptoma_Publication_Integrator
             {
                 Log("Unable to get paid status from database");
             }
-
+            
             return unpaid;
         }
 
