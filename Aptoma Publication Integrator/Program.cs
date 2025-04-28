@@ -41,8 +41,12 @@ namespace Aptoma_Publication_Integrator
         static void Main(string[] args)
         {
             LoadSettings();
-            StartPolling();
-            Aptoma.Init();
+            //StartPolling();
+            //Aptoma.Init();
+
+            FolioJsonHandler.LoadTemplateMap(@"C:\temp\aptoma\Foliomapping\templatemap.json");
+            FolioJsonHandler.GetFolioMapping("AAS_DEBAT_V");
+            
 
             if (SAVEOUTPUT)
             {

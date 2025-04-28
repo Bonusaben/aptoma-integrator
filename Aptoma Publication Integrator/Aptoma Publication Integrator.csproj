@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Aptoma.cs" />
+    <Compile Include="FolioJsonHandler.cs" />
     <Compile Include="ImageMeta.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
