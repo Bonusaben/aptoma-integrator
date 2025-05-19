@@ -89,7 +89,7 @@ namespace Aptoma_Publication_Integrator
             result[1] = "";
 
             var client = new RestClient(url);
-            var request = new RestRequest(Method.POST);
+            var request = new RestRequest("Method.POST");
 
             if (headers != null)
             {
@@ -104,7 +104,7 @@ namespace Aptoma_Publication_Integrator
 
             request.AddParameter(requestBodyParameter.Key, requestBodyParameter.Value, ParameterType.RequestBody);
             
-            IRestResponse response = client.Execute(request);
+            RestResponse response = client.Execute(request);
             //Program.Log("Response: "+response.Content);
             //HttpStatusCode sCode = response.StatusCode;
 

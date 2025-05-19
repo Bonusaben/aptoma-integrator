@@ -11,34 +11,63 @@ namespace Aptoma_Publication_Integrator
 {
     static class FolioJsonHandler
     {
-        static JObject o1 = new JObject();
+        static JObject mappingObject = new JObject();
+        static JObject folioTextObject = new JObject();
 
         public static void LoadTemplateMap(string fileName)
         {
-            Console.WriteLine("Loading JSON template file...");
-            o1 = JObject.Parse(File.ReadAllText(fileName));
+            Console.WriteLine("Loading JSON template mapping file...");
+            mappingObject = JObject.Parse(File.ReadAllText(fileName));
             Console.WriteLine("Done!");
         }
 
-        public static string GetFolioMapping(string key)
+        public static void LoadFolioTextMap(string fileName)
         {
-            string value = "aloha";
-            string bla = o1.GetValue(key).ToString();
+            Console.WriteLine("Loading JSON folio text mapping file...");
+            folioTextObject= JObject.Parse(File.ReadAllText(fileName));
+            Console.WriteLine("Done!");
+        }
 
-            Console.WriteLine(bla);
+        public static string GetFolioMapping(string productName, string pdlTemplateName)
+        {
+            string folioMapping = "";
 
-            /*
-            "AAS": {
-                "folioMapping": {
-                    "AAS_Debat1_V": "LEDER AAS",
-                    "AAS_Debat1_H": "LEDER AAS",
-                    "AAS_Tegneserie_H": "Vejr Top",
-                    "AAS_Tegneserie_V": "Vejr Top"
-                }
+            try
+            {
+                folioMapping = mappingObject[productName]["folioMapping"][pdlTemplateName].ToString();
+
+                Console.WriteLine("Mapping of " + pdlTemplateName + " found: " + folioMapping);
             }
-            */
+            catch (Exception)
+            {
+                Console.WriteLine("Mapping of " + pdlTemplateName + " not found.");
+            }
 
-            return value;
+            return folioMapping;
+        }
+
+        public static List<string> GetFolioText(string pdlTemplateName)
+        {
+            List<string> folioValues = new List<string>();
+            string folioText = "";
+            string folioTextSize = "";
+
+            try
+            {
+                folioText = folioTextObject[pdlTemplateName]["folioText"].ToString();
+                folioTextSize = folioTextObject[pdlTemplateName]["folioTextSize"].ToString();
+
+                Console.WriteLine("Folio text found: " + folioText + " with text size: " + folioTextSize);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Folio text not found.");
+            }
+
+            folioValues.Add(folioText);
+            folioValues.Add(folioTextSize);
+
+            return folioValues;
         }
     }
 }

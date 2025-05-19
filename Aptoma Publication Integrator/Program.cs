@@ -23,6 +23,8 @@ namespace Aptoma_Publication_Integrator
         static string OUTPUTDIR;
         static string XMLURLDIR;
         static string XMLNAMESPACE;
+        static string TEMPLATEFILE;
+        static string FOLIOFILE;
         
         static Timer TIMER;
         static int TIMERINTERVAL = 5000; // Milliseconds
@@ -41,11 +43,17 @@ namespace Aptoma_Publication_Integrator
         static void Main(string[] args)
         {
             LoadSettings();
+
+            FolioJsonHandler.LoadTemplateMap(TEMPLATEFILE);
+            FolioJsonHandler.LoadFolioTextMap(FOLIOFILE);
+
             //StartPolling();
             //Aptoma.Init();
 
-            FolioJsonHandler.LoadTemplateMap(@"C:\temp\aptoma\Foliomapping\templatemap.json");
-            FolioJsonHandler.GetFolioMapping("AAS_DEBAT_V");
+
+
+            FolioJsonHandler.GetFolioMapping("FST","FST_1Sek_Side2_V");
+            FolioJsonHandler.GetFolioText("FST_1Sek_Side2_V");
             
 
             if (SAVEOUTPUT)
@@ -79,6 +87,9 @@ namespace Aptoma_Publication_Integrator
             OUTPUTDIR = appSettings.Get("OUTPUTDIR");
             XMLURLDIR = appSettings.Get("XMLURLDIR");
             XMLNAMESPACE = appSettings.Get("XMLNAMESPACE");
+
+            TEMPLATEFILE = appSettings.Get("TEMPLATEFILE");
+            FOLIOFILE = appSettings.Get("FOLIOFILE");
 
             if (INPUTDIR.Substring(INPUTDIR.Length - 1) != "\\")
             {
