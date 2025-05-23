@@ -15,6 +15,63 @@ using System.Drawing;
 
 namespace Aptoma_Publication_Integrator
 {
+    public struct Ad
+    {
+        public string OrderNumber { get; set; }
+        public string File { get; set; }
+        public string ImageFile { get; set; }
+        public string Url { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public string BookingCode { get; set; }
+        public bool Unpaid { get; set; }
+        public string Customer { get; set; }
+        public string AdReady { get; set; }
+        public string Comment { get; set; }
+    }
+
+    public struct Divider
+    {
+        public float X { get; set; }
+        public float Y { get; set; }
+        public float X2 { get; set; }
+        public float Y2 { get; set; }
+    }
+
+    public struct Header
+    {
+        public string File { get; set; }
+        public string ImageFile { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
+        public float Width { get; set; }
+        public float Height { get; set; }
+    }
+    public struct Filler
+    {
+        public string File { get; set; }
+        public string ImageFile { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
+        public float Width { get; set; }
+        public float Height { get; set; }
+    }
+
+    public struct PDL
+    {
+        public string Zone { get; set; }
+        public string PublishDate { get; set; }
+        public string Section { get; set; }
+        public int Page { get; set; }
+        public string Folio { get; set; }
+        public List<Ad> Ads { get; set; }
+        public List<Divider> Dividers { get; set; }
+        public List<Header> Headers { get; set; }
+        public List<Filler> Fillers { get; set; }
+    }
+
     class Program
     {
         static string INPUTDIR;
@@ -40,9 +97,19 @@ namespace Aptoma_Publication_Integrator
 
         static string DATEFORSQL;
 
+        private static PDL _currentPdl;
+
         static void Main(string[] args)
         {
             LoadSettings();
+
+            _currentPdl = new PDL
+            {
+                Ads = new List<Ad>(),
+                Dividers = new List<Divider>(),
+                Headers = new List<Header>(),
+                Fillers = new List<Filler>()
+            };
 
             FolioJsonHandler.LoadTemplateMap(TEMPLATEFILE);
             FolioJsonHandler.LoadFolioTextMap(FOLIOFILE);
@@ -155,7 +222,16 @@ namespace Aptoma_Publication_Integrator
                             if (extension.Substring(0, 1).ToLower().Equals("p"))
                             {
                                 Log("Processing pdl file: " + fileName);
-                                string json = ConvertPDLtoJSON(file);
+
+                                _currentPdl.Ads.Clear();
+                                _currentPdl.Dividers.Clear();
+                                _currentPdl.Headers.Clear();
+                                _currentPdl.Fillers.Clear();
+
+                                LoadPdl(file, ref _currentPdl);
+                                string json = BuildPageJson(_currentPdl);
+
+                                //string json = ConvertPDLtoJSON(file);
 
                                 if (!DEBUG)
                                 {
@@ -268,6 +344,209 @@ namespace Aptoma_Publication_Integrator
             }
         }
 
+        private static void LoadPdl(string filePath, ref PDL pdl)
+        {
+            var lines = new List<string>();
+            using (var reader = new StreamReader(filePath, Encoding.GetEncoding("windows-1252")))
+            {
+                while (!reader.EndOfStream)
+                    lines.Add(reader.ReadLine());
+            }
+            if (!lines.Any()) return;
+
+            // Parse header line
+            var parts = lines[0].Split('\t');
+            var dateRaw = parts[0].Split('=')[1];
+            var dt = DateTime.ParseExact(dateRaw, "yyyyMMdd", CultureInfo.InvariantCulture);
+            pdl.PublishDate = dt.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            pdl.Zone = parts[3].Split('=')[1];
+            pdl.Folio = parts[1].Split('=')[1];
+
+            var fileName = Path.GetFileName(filePath);
+            pdl.Section = fileName.Substring(10, 1);
+            pdl.Page = int.Parse(fileName.Substring(11, 3));
+
+            var xmlFilename = parts[3].Split('=')[1] + "_" + dt.ToString("yyyy-MM-dd") + ".xml";
+
+            // Remove header
+            lines.RemoveAt(0);
+
+            // Ads
+            foreach (var line in lines.Where(l => !string.IsNullOrEmpty(l)))
+            {
+                var cols = line.Split('\t');
+                var type = cols[5].Split('=')[1].Split(',')[0];
+                if (type == "EPS" || type == "PDF")
+                {
+                    var orderNr = int.Parse(cols[8].Split('=')[1].Split(',')[0]);
+                    var ad = new Ad
+                    {
+                        OrderNumber = cols[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ""),
+                        File = cols[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ".PDF"),
+                        ImageFile = cols[6].Split('=')[1].Split('\\').Last().Split('.')[0] + ".jpg",
+                        Url = OrderLinkLookup(orderNr, xmlFilename),
+                        X = float.Parse(cols[0].Split('=')[1], CultureInfo.InvariantCulture),
+                        Y = float.Parse(cols[1].Split('=')[1], CultureInfo.InvariantCulture),
+                        Width = float.Parse(cols[2].Split('=')[1], CultureInfo.InvariantCulture),
+                        Height = float.Parse(cols[3].Split('=')[1], CultureInfo.InvariantCulture),
+                        BookingCode = cols[8].Split('=')[1].Split(',')[1],
+                        Unpaid = OrderPaidLookup(orderNr),
+                        Customer = cols[8].Split('=')[1].Split(',')[2],
+                        AdReady = cols[4].Split('=')[1],
+                        Comment = cols[8].Split('=')[1].Split(',')[5]
+                    };
+                    pdl.Ads.Add(ad);
+                }
+            }
+
+            // Dividers
+            foreach (var line in lines.Where(l => !string.IsNullOrEmpty(l)))
+            {
+                var cols = line.Split('\t');
+                if (cols[5].Split('=')[1].Split(',')[0] == "LINES")
+                {
+                    var d = new Divider
+                    {
+                        X = float.Parse(cols[0].Split('=')[1], CultureInfo.InvariantCulture),
+                        Y = float.Parse(cols[1].Split('=')[1], CultureInfo.InvariantCulture),
+                        X2 = float.Parse(cols[2].Split('=')[1], CultureInfo.InvariantCulture),
+                        Y2 = float.Parse(cols[3].Split('=')[1], CultureInfo.InvariantCulture)
+                    };
+                    pdl.Dividers.Add(d);
+                }
+            }
+
+            // Headers
+            foreach (var line in lines.Where(l => !string.IsNullOrEmpty(l)))
+            {
+                var cols = line.Split('\t');
+                if (cols[5].Split('=')[1].Split(',')[0] == "HEADLINE")
+                {
+                    var h = new Header
+                    {
+                        File = "Header\\" + cols[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ".PDF"),
+                        ImageFile = "Header\\" + cols[6].Split('=')[1].Split('\\').Last().Split('.')[0] + ".jpg",
+                        X = float.Parse(cols[0].Split('=')[1], CultureInfo.InvariantCulture),
+                        Y = float.Parse(cols[1].Split('=')[1], CultureInfo.InvariantCulture),
+                        Width = float.Parse(cols[2].Split('=')[1], CultureInfo.InvariantCulture),
+                        Height = float.Parse(cols[3].Split('=')[1], CultureInfo.InvariantCulture)
+                    };
+                    pdl.Headers.Add(h);
+                }
+            }
+
+            // Fillers
+            foreach (var line in lines.Where(l => !string.IsNullOrEmpty(l)))
+            {
+                var cols = line.Split('\t');
+                if (cols[5].Split('=')[1].Split(',')[0] == "FILLER")
+                {
+                    var f = new Filler
+                    {
+                        File = "Filler\\" + cols[6].Split('=')[1].Split('\\').Last().Replace(".EPS", ".PDF"),
+                        ImageFile = "Filler\\" + cols[6].Split('=')[1].Split('\\').Last().Split('.')[0] + ".jpg",
+                        X = float.Parse(cols[0].Split('=')[1], CultureInfo.InvariantCulture),
+                        Y = float.Parse(cols[1].Split('=')[1], CultureInfo.InvariantCulture),
+                        Width = float.Parse(cols[2].Split('=')[1], CultureInfo.InvariantCulture),
+                        Height = float.Parse(cols[3].Split('=')[1], CultureInfo.InvariantCulture)
+                    };
+                    pdl.Fillers.Add(f);
+                }
+            }
+        }
+
+        public static string BuildPageJson(PDL pdl)
+        {
+            using (var sw = new StringWriter())
+            using (var writer = new JsonTextWriter(sw))
+            {
+                writer.Formatting = Newtonsoft.Json.Formatting.Indented;
+                writer.WriteStartObject();
+
+                // edition
+                writer.WritePropertyName("edition");
+                writer.WriteStartObject();
+                writer.WritePropertyName("zone"); writer.WriteValue(pdl.Zone);
+                writer.WritePropertyName("publishDate"); writer.WriteValue(pdl.PublishDate);
+                writer.WritePropertyName("section"); writer.WriteValue(pdl.Section);
+                writer.WritePropertyName("page"); writer.WriteValue(pdl.Page);
+                writer.WritePropertyName("folio"); writer.WriteValue(pdl.Folio);
+                writer.WriteEndObject();
+
+                // ads
+                writer.WritePropertyName("ads");
+                writer.WriteStartArray();
+                foreach (var ad in pdl.Ads)
+                {
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("orderNumber"); writer.WriteValue(ad.OrderNumber);
+                    writer.WritePropertyName("file"); writer.WriteValue(ad.File);
+                    writer.WritePropertyName("imageFile"); writer.WriteValue(ad.ImageFile);
+                    writer.WritePropertyName("url"); writer.WriteValue(ad.Url);
+                    writer.WritePropertyName("x"); writer.WriteValue(ad.X);
+                    writer.WritePropertyName("y"); writer.WriteValue(ad.Y);
+                    writer.WritePropertyName("width"); writer.WriteValue(ad.Width);
+                    writer.WritePropertyName("height"); writer.WriteValue(ad.Height);
+                    writer.WritePropertyName("bookingCode"); writer.WriteValue(ad.BookingCode);
+                    writer.WritePropertyName("unpaid"); writer.WriteValue(ad.Unpaid);
+                    writer.WritePropertyName("customer"); writer.WriteValue(ad.Customer);
+                    writer.WritePropertyName("adReady"); writer.WriteValue(ad.AdReady);
+                    writer.WritePropertyName("comment"); writer.WriteValue(ad.Comment);
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray();
+
+                // dividers
+                writer.WritePropertyName("dividers");
+                writer.WriteStartArray();
+                foreach (var d in pdl.Dividers)
+                {
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("x"); writer.WriteValue(d.X);
+                    writer.WritePropertyName("y"); writer.WriteValue(d.Y);
+                    writer.WritePropertyName("x2"); writer.WriteValue(d.X2);
+                    writer.WritePropertyName("y2"); writer.WriteValue(d.Y2);
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray();
+
+                // headers
+                writer.WritePropertyName("headers");
+                writer.WriteStartArray();
+                foreach (var h in pdl.Headers)
+                {
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("file"); writer.WriteValue(h.File);
+                    writer.WritePropertyName("imageFile"); writer.WriteValue(h.ImageFile);
+                    writer.WritePropertyName("x"); writer.WriteValue(h.X);
+                    writer.WritePropertyName("y"); writer.WriteValue(h.Y);
+                    writer.WritePropertyName("width"); writer.WriteValue(h.Width);
+                    writer.WritePropertyName("height"); writer.WriteValue(h.Height);
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray();
+
+                // fillers
+                writer.WritePropertyName("fillers");
+                writer.WriteStartArray();
+                foreach (var f in pdl.Fillers)
+                {
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("file"); writer.WriteValue(f.File);
+                    writer.WritePropertyName("imageFile"); writer.WriteValue(f.ImageFile);
+                    writer.WritePropertyName("x"); writer.WriteValue(f.X);
+                    writer.WritePropertyName("y"); writer.WriteValue(f.Y);
+                    writer.WritePropertyName("width"); writer.WriteValue(f.Width);
+                    writer.WritePropertyName("height"); writer.WriteValue(f.Height);
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray();
+
+                writer.WriteEndObject();
+                return sw.ToString();
+            }
+        }
+
         static string ConvertXMLToJson(string file)
         {
             StringBuilder sb = new StringBuilder();
@@ -364,6 +643,7 @@ namespace Aptoma_Publication_Integrator
             return sb.ToString();
         }
 
+        
         static string ConvertPDLtoJSON(string pdlFile)
         {
             //
