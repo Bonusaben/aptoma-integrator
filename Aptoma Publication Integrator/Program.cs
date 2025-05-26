@@ -66,6 +66,8 @@ namespace Aptoma_Publication_Integrator
         public string Section { get; set; }
         public int Page { get; set; }
         public string Folio { get; set; }
+        public string FolioText { get; set; }
+        public string FolioTextSize { get; set; }
         public List<Ad> Ads { get; set; }
         public List<Divider> Dividers { get; set; }
         public List<Header> Headers { get; set; }
@@ -114,13 +116,13 @@ namespace Aptoma_Publication_Integrator
             FolioJsonHandler.LoadTemplateMap(TEMPLATEFILE);
             FolioJsonHandler.LoadFolioTextMap(FOLIOFILE);
 
-            //StartPolling();
+            StartPolling();
             //Aptoma.Init();
 
 
 
-            FolioJsonHandler.GetFolioMapping("FST","FST_1Sek_Side2_V");
-            FolioJsonHandler.GetFolioText("FST_1Sek_Side2_V");
+            //FolioJsonHandler.GetFolioMapping("FST","FST_1Sek_Side2_V");
+            //FolioJsonHandler.GetFolioText("FST_1Sek_Side2_V");
             
 
             if (SAVEOUTPUT)
@@ -360,7 +362,11 @@ namespace Aptoma_Publication_Integrator
             var dt = DateTime.ParseExact(dateRaw, "yyyyMMdd", CultureInfo.InvariantCulture);
             pdl.PublishDate = dt.ToString("yyyy-MM-ddTHH:mm:ssZ");
             pdl.Zone = parts[3].Split('=')[1];
-            pdl.Folio = parts[1].Split('=')[1];
+            //pdl.Folio = parts[1].Split('=')[1];
+            pdl.Folio = FolioJsonHandler.GetFolioMapping(pdl.Zone, parts[1].Split('=')[1]);
+            List<string> _folioText = FolioJsonHandler.GetFolioText(parts[1].Split('=')[1]);
+            pdl.FolioText = _folioText[0];
+            pdl.FolioTextSize = _folioText[1];
 
             var fileName = Path.GetFileName(filePath);
             pdl.Section = fileName.Substring(10, 1);
@@ -471,6 +477,8 @@ namespace Aptoma_Publication_Integrator
                 writer.WritePropertyName("section"); writer.WriteValue(pdl.Section);
                 writer.WritePropertyName("page"); writer.WriteValue(pdl.Page);
                 writer.WritePropertyName("folio"); writer.WriteValue(pdl.Folio);
+                writer.WritePropertyName("folioText"); writer.WriteValue(pdl.FolioText);
+                writer.WritePropertyName("folioTextSize"); writer.WriteValue(pdl.FolioTextSize);
                 writer.WriteEndObject();
 
                 // ads
