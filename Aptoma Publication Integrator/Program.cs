@@ -117,7 +117,7 @@ namespace Aptoma_Publication_Integrator
             FolioJsonHandler.LoadFolioTextMap(FOLIOFILE);
 
             StartPolling();
-            //Aptoma.Init();
+            Aptoma.Init();
 
 
 
@@ -259,7 +259,9 @@ namespace Aptoma_Publication_Integrator
                             else if (extension.Equals("xml"))
                             {
                                 Log("Processing xml file: " + fileName);
-                                string json = ConvertXMLToJson(file);
+
+                                string json = IngestBuilder.LoadXML(file);
+                                //string json = ConvertXMLToJson(file);
 
                                 if (!DEBUG)
                                 {
