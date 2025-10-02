@@ -39,36 +39,44 @@ namespace Aptoma_Publication_Integrator
             string editionName = $"{product.ToLowerInvariant()}-{pub:yyyy-MM-dd}";
             string editionTitle = $"{product} {pub:yyyy-MM-dd}";
 
-            // Pages: ID = PhysicalBook + BookPageNumber (e.g., "A1", "B7")
-            var pages = doc.Descendants(ns + "Page")
+            // Pages: ID = PhysicalBook + BookPageNumber (e.g., "A1", "B7", "C3")
+            var rawPages = doc.Descendants(ns + "Page")
                 .Select(p => new
                 {
                     Section = ((string)p.Element(ns + "PhysicalBook")) ?? "",
                     PageNo = (int?)p.Element(ns + "BookPageNumber") ?? 0
                 })
+                .Where(x => !string.IsNullOrEmpty(x.Section) && x.PageNo > 0)
+                .ToList();
+
+            var pages = rawPages
                 .Select(x => new Page
                 {
-                    Id = $"{x.Section}{x.PageNo}",
+                    Id = x.Section + x.PageNo.ToString(CultureInfo.InvariantCulture),
                     Template = "MPP"
                 })
-                .OrderBy(pg => pg.Id.Length > 0 ? pg.Id[0] : '\uffff') // section letter
+                .OrderBy(pg => pg.Id.Substring(0, 1), StringComparer.OrdinalIgnoreCase) // section letter
                 .ThenBy(pg =>
                 {
-                    // extract numeric tail for stable ordering (A1, A2, A10, ...)
-                    var num = 0;
-                    int i = 1;
-                    while (i < pg.Id.Length && char.IsDigit(pg.Id[i])) i++;
-                    int.TryParse(pg.Id.Substring(1, pg.Id.Length - 1), out num);
-                    return num;
+                    int num;
+                    return int.TryParse(pg.Id.Length > 1 ? pg.Id.Substring(1) : "0", out num) ? num : int.MaxValue;
                 })
                 .ToList();
 
-            // Sections: first A*, first B* (use new IDs)
-            var sections = new List<Section>();
-            var firstA = pages.FirstOrDefault(p => p.Id.StartsWith("A", StringComparison.OrdinalIgnoreCase));
-            var firstB = pages.FirstOrDefault(p => p.Id.StartsWith("B", StringComparison.OrdinalIgnoreCase));
-            if (firstA != null) sections.Add(new Section { Prefix = "A-", FirstPageId = firstA.Id });
-            if (firstB != null) sections.Add(new Section { Prefix = "B-", FirstPageId = firstB.Id });
+            // Sections: include ALL distinct sections found, with their first page (lowest page number)
+            var sections = rawPages
+                .GroupBy(x => x.Section, StringComparer.OrdinalIgnoreCase)
+                .Select(g =>
+                {
+                    var firstPageNo = g.Min(x => x.PageNo);
+                    return new Section
+                    {
+                        Prefix = g.Key + "-",
+                        FirstPageId = g.Key + firstPageNo.ToString(CultureInfo.InvariantCulture)
+                    };
+                })
+                .OrderBy(s => s.Prefix, StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
             var result = new IngestDoc
             {
@@ -91,13 +99,13 @@ namespace Aptoma_Publication_Integrator
             {
                 ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
                 NullValueHandling = NullValueHandling.Ignore,
-                Formatting = Formatting.Indented
+                Formatting = Newtonsoft.Json.Formatting.Indented
             };
 
             return JsonConvert.SerializeObject(result, settings);
         }
 
-        // DTOs (PascalCase in C#, camelCase via resolver)
+        // DTOs (PascalCase here; camelCase via resolver)
         private class IngestDoc
         {
             public string Name { get; set; }
@@ -112,14 +120,14 @@ namespace Aptoma_Publication_Integrator
 
         public class Page
         {
-            public string Id { get; set; }       // "A1", "B2"
+            public string Id { get; set; }       // "A1", "B2", "C3"
             public string Template { get; set; } // "MPP"
         }
 
         public class Section
         {
-            public string Prefix { get; set; }      // "A-", "B-"
-            public string FirstPageId { get; set; } // "A1", "B1"
+            public string Prefix { get; set; }      // "A-", "B-", "C-"
+            public string FirstPageId { get; set; } // "A1", "B1", "C1"
         }
 
         public class Config

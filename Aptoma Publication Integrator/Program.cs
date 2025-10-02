@@ -231,9 +231,9 @@ namespace Aptoma_Publication_Integrator
                                 _currentPdl.Fillers.Clear();
 
                                 LoadPdl(file, ref _currentPdl);
-                                string json = BuildPageJson(_currentPdl);
+                                //string json = BuildPageJson(_currentPdl);
 
-                                //string json = ConvertPDLtoJSON(file);
+                                string json = ConvertPDLtoJSON(file);
 
                                 if (!DEBUG)
                                 {
@@ -463,6 +463,100 @@ namespace Aptoma_Publication_Integrator
             }
         }
 
+        /*
+        public static string BuildPageJson(
+        string name,
+        string productName,
+        string editionName,
+        string editionTitle,
+        string publishDateIso,
+        string pageId,
+        string template,
+        IEnumerable<AdItem> ads,
+        string folioText = "",
+        string folioTextSize = "small"
+    )
+        {
+            var sb = new StringBuilder();
+            using var sw = new System.IO.StringWriter(sb, CultureInfo.InvariantCulture);
+            using var jw = new JsonTextWriter(sw) { Formatting = Formatting.Indented, Culture = CultureInfo.InvariantCulture };
+
+            jw.WriteStartObject();
+
+            jw.WritePropertyName("name"); jw.WriteValue(name);
+            jw.WritePropertyName("productName"); jw.WriteValue(productName);
+            jw.WritePropertyName("editionName"); jw.WriteValue(editionName);
+            jw.WritePropertyName("editionTitle"); jw.WriteValue(editionTitle);
+            jw.WritePropertyName("publishDate"); jw.WriteValue(publishDateIso);
+
+            // page
+            jw.WritePropertyName("page");
+            jw.WriteStartObject();
+            jw.WritePropertyName("id"); jw.WriteValue(pageId);
+            jw.WritePropertyName("template"); jw.WriteValue(template);
+
+            // properties (after template)
+            jw.WritePropertyName("properties");
+            jw.WriteStartObject();
+            jw.WritePropertyName("folioText"); jw.WriteValue(folioText);
+            jw.WritePropertyName("folioTextSize"); jw.WriteValue(folioTextSize);
+            jw.WriteEndObject();
+
+            // objects
+            jw.WritePropertyName("objects");
+            jw.WriteStartObject();
+
+            // ads
+            jw.WritePropertyName("ads");
+            jw.WriteStartArray();
+            if (ads != null)
+            {
+                foreach (var a in ads)
+                {
+                    jw.WriteStartObject();
+                    jw.WritePropertyName("id"); jw.WriteValue(a.id);
+                    jw.WritePropertyName("title"); jw.WriteValue(a.title);
+                    jw.WritePropertyName("pdfUrl"); jw.WriteValue(a.pdfUrl);
+                    jw.WritePropertyName("previewUrl"); jw.WriteValue(a.previewUrl);
+                    jw.WritePropertyName("ready"); jw.WriteValue(a.ready);
+
+                    jw.WritePropertyName("placement");
+                    jw.WriteStartObject();
+                    jw.WritePropertyName("x"); jw.WriteValue(a.placement.x);
+                    jw.WritePropertyName("y"); jw.WriteValue(a.placement.y);
+                    jw.WritePropertyName("width"); jw.WriteValue(a.placement.width);
+                    jw.WritePropertyName("height"); jw.WriteValue(a.placement.height);
+                    jw.WriteEndObject();
+
+                    jw.WritePropertyName("properties");
+                    jw.WriteStartObject();
+                    jw.WritePropertyName("bookingCode"); jw.WriteValue(a.properties.bookingCode);
+                    jw.WritePropertyName("comment"); jw.WriteValue(a.properties.comment);
+                    jw.WritePropertyName("adReady"); jw.WriteValue(a.properties.adReady);
+                    jw.WriteEndObject();
+
+                    jw.WriteEndObject();
+                }
+            }
+            jw.WriteEndArray(); // ads
+
+            jw.WriteEndObject(); // objects
+            jw.WriteEndObject(); // page
+
+            // config
+            jw.WritePropertyName("config");
+            jw.WriteStartObject();
+            jw.WritePropertyName("adItemSchemaName"); jw.WriteValue("print-ad-item");
+            jw.WritePropertyName("pdfItemSchemaName"); jw.WriteValue("print-pdf-item");
+            jw.WritePropertyName("allowTemplateUpdate"); jw.WriteValue(true);
+            jw.WriteEndObject();
+
+            jw.WriteEndObject();
+            jw.Flush();
+
+            return sb.ToString();
+        }
+        /*
         public static string BuildPageJson(PDL pdl)
         {
             using (var sw = new StringWriter())
@@ -556,7 +650,8 @@ namespace Aptoma_Publication_Integrator
                 return sw.ToString();
             }
         }
-
+        */
+        
         static string ConvertXMLToJson(string file)
         {
             StringBuilder sb = new StringBuilder();
