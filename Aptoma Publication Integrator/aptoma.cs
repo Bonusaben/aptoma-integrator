@@ -82,8 +82,11 @@ namespace Aptoma_Publication_Integrator
         /// <param name="url"></param>The url of tha api call
         /// <param name="body"></param>The body of the api call
         /// <returns>a string with the rest response</returns>
+        /*
         public static string[] AptomaPost(string url, Dictionary<string, string> headers, KeyValuePair<string, string> requestBodyParameter)
         {
+            Program.Log("Posting to Aptoma url: "+url);
+
             string[] result = new string[2];
             result[0] = "";
             result[1] = "";
@@ -93,8 +96,10 @@ namespace Aptoma_Publication_Integrator
 
             if (headers != null)
             {
+                Program.Log("Headers:");
                 foreach (KeyValuePair<string, string> header in headers)
                 {
+                    Program.Log(header.Key + " - " + header.Value);
                     request.AddHeader(header.Key, header.Value);
                 }
             }
@@ -102,11 +107,14 @@ namespace Aptoma_Publication_Integrator
             //For testing v11 changes
             //request.AddHeader("api-version", "11");
 
+            Program.Log("Parameters: "+requestBodyParameter.Key + " - " + requestBodyParameter.Value);
             request.AddParameter(requestBodyParameter.Key, requestBodyParameter.Value, ParameterType.RequestBody);
             
             RestResponse response = client.Execute(request);
-            //Program.Log("Response: "+response.Content);
-            //HttpStatusCode sCode = response.StatusCode;
+
+            Program.Log("StatusCode: "+response.StatusCode.ToString());
+            Program.Log("StatusDescription: "+response.StatusDescription);
+            Program.Log("Content: "+response.Content);
 
             if (response.StatusDescription!=null)
             {
@@ -117,6 +125,61 @@ namespace Aptoma_Publication_Integrator
                 Program.Log("Response from server empty!");
             }
             
+            return result;
+        }
+        */
+
+        public static string[] AptomaPost(string url, Dictionary<string, string> headers, KeyValuePair<string, string> requestBodyParameter)
+        {
+            Program.Log("Posting to Aptoma url: " + url);
+
+            var result = new string[2];
+
+            // Helps on older frameworks
+            System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
+
+            var options = new RestSharp.RestClientOptions
+            {
+                Timeout = System.TimeSpan.FromSeconds(30000)
+            };
+            var client = new RestSharp.RestClient(options);
+
+            // FIX: Proper POST + full URL here (don’t use "Method.POST" as a string)
+            var request = new RestSharp.RestRequest(url, RestSharp.Method.Post);
+
+            if (headers != null)
+            {
+                Program.Log("Headers:");
+                foreach (var header in headers)
+                {
+                    Program.Log(header.Key + " - " + header.Value);
+                    request.AddHeader(header.Key, header.Value);
+                }
+            }
+
+            Program.Log("Parameters: " + requestBodyParameter.Key + " - " + requestBodyParameter.Value);
+
+            var contentTypeHeader = headers != null && headers.TryGetValue("Content-Type", out var ct) ? ct : null;
+            if (string.Equals(contentTypeHeader, "application/json", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(requestBodyParameter.Key, "application/json", StringComparison.OrdinalIgnoreCase))
+            {
+                request.AddStringBody(requestBodyParameter.Value, RestSharp.DataFormat.Json);
+            }
+            else
+            {
+                request.AddParameter(requestBodyParameter.Key, requestBodyParameter.Value, RestSharp.ParameterType.RequestBody);
+            }
+
+            var response = client.Execute(request);
+
+            //Program.Log("StatusCode: " + (int)response.StatusCode + " (" + response.StatusCode + ")");
+            Program.Log("ResponseStatus: " + response.ResponseStatus);
+            //Program.Log("ErrorMessage: " + response.ErrorMessage);
+            //Program.Log("Content: " + response.Content);
+
+            result[0] = response.StatusDescription ?? response.ResponseStatus.ToString();
+            result[1] = response.Content ?? "";
+
             return result;
         }
 
@@ -136,6 +199,7 @@ namespace Aptoma_Publication_Integrator
         static public string[] PostPage(string json)
         {
             Program.Log("Sending page info to Aptoma");
+
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add("Authorization", "apikey " + APIKEY);
             headers.Add("Content-Type", "application/json");
@@ -157,5 +221,38 @@ namespace Aptoma_Publication_Integrator
             return AptomaPost(IMGURL + "?jwt=" + token, null, body);
         }
 
+        public static async Task TestAsync()
+        {
+            // If you’re on .NET Framework ≤ 4.7.1, uncomment the next line.
+            // For 4.7.2+ you can usually leave it out, but enabling TLS 1.2 never hurts.
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+            var options = new RestClientOptions("https://YOUR-HOST")
+            {
+                MaxTimeout = 30000,            // 30s
+                ThrowOnAnyError = false,
+                FollowRedirects = true,
+                // Proxy = new WebProxy("http://127.0.0.1:8888") // <- uncomment to debug via Fiddler
+            };
+
+            var client = new RestClient(options);
+
+            var req = new RestRequest("/your/path", Method.Post);
+            req.AddHeader("Accept", "application/json");
+            req.AddHeader("Content-Type", "application/json");
+            // If you have a raw JSON string:
+            // req.AddStringBody(yourJsonString, DataFormat.Json);
+            // If you have a C# object:
+            // req.AddJsonBody(yourObject);
+
+            RestResponse resp = await client.ExecuteAsync(req);
+
+            Console.WriteLine("StatusCode: " + (int)resp.StatusCode);
+            Console.WriteLine("ResponseStatus: " + resp.ResponseStatus);   // Completed, Error, TimedOut, Aborted
+            Console.WriteLine("ErrorMessage: " + resp.ErrorMessage);
+            Console.WriteLine("ErrorException: " + resp.ErrorException);
+            Console.WriteLine("Content length: " + (resp.Content?.Length ?? 0));
+            Console.WriteLine("Raw Content: " + resp.Content);
+        }
     }
 }
