@@ -230,10 +230,10 @@ namespace Aptoma_Publication_Integrator
                                 _currentPdl.Headers.Clear();
                                 _currentPdl.Fillers.Clear();
 
-                                LoadPdl(file, ref _currentPdl);
-                                //string json = BuildPageJson(_currentPdl);
+                                //LoadPdl(file, ref _currentPdl);
+                                string json = JsonBuilder.BuildPageJson(@file, "https://d3lxqcpoavadc.cloudfront.net/Ads/", "https://d3lxqcpoavadc.cloudfront.net/Ads/");
 
-                                string json = ConvertPDLtoJSON(file);
+                                //string json = ConvertPDLtoJSON(file);
 
                                 if (!DEBUG)
                                 {
@@ -749,6 +749,7 @@ namespace Aptoma_Publication_Integrator
         }
 
         
+        /*
         static string ConvertPDLtoJSON(string pdlFile)
         {
             //
@@ -991,6 +992,7 @@ namespace Aptoma_Publication_Integrator
 
             return sb.ToString();
         }
+        */
 
         static string OrderLinkLookup(int orderNr,string xmlFilename)
         {
