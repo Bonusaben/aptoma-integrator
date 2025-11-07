@@ -231,7 +231,7 @@ namespace Aptoma_Publication_Integrator
                                 _currentPdl.Fillers.Clear();
 
                                 //LoadPdl(file, ref _currentPdl);
-                                string json = JsonBuilder.BuildPageJson(@file, "https://d3lxqcpoavadc.cloudfront.net/Ads/", "https://d3lxqcpoavadc.cloudfront.net/Ads/");
+                                string json = JsonBuilder.BuildPageJson(@file, "https://d3lxqcpoavadc.cloudfront.net/Ads/", "https://d3lxqcpoavadc.cloudfront.net/Header/", "https://d3lxqcpoavadc.cloudfront.net/Filler/", "https://d3lxqcpoavadc.cloudfront.net/Folio/");
 
                                 //string json = ConvertPDLtoJSON(file);
 

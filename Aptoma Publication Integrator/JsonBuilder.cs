@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Aptoma_Publication_Integrator;
 using Newtonsoft.Json;
@@ -18,7 +17,11 @@ public static class JsonBuilder
         public string publishDate;   // "yyyy-MM-ddTHH:mm:ss.000Z"
         public string section;       // "A","B","C", ...
         public int page;             // section page number
-        public string folio;         // used as template (after mapping)
+
+        // NEW: keep both the raw key and the mapped value
+        public string folioKey;      // raw folio from PDL (e.g., "KUO_Forside_H")
+        public string folio;         // mapped folio used as "template" (e.g., "MPP")
+
         public string folioText;     // from FolioJsonHandler.GetFolioText(...)
         public string folioTextSize; // from FolioJsonHandler.GetFolioText(...), e.g. "small"
     }
@@ -73,8 +76,10 @@ public static class JsonBuilder
     // Build directly from a PDL file path (calls LoadPDL internally)
     public static string BuildPageJson(
         string pdlFile,
-        string pdfBaseUrl,
-        string previewBaseUrl,
+        string adsBaseUrl,
+        string headersBaseUrl,
+        string fillersBaseUrl,
+        string folioBaseUrl,
         string name = "jfm-ad-ingest")
     {
         Pdl pdl;
@@ -84,7 +89,8 @@ public static class JsonBuilder
         List<Filler> fillers;
 
         LoadPDL(pdlFile, out pdl, out ads, out dividers, out headers, out fillers);
-        return BuildPageJson(pdl, ads, dividers, headers, fillers, pdfBaseUrl, previewBaseUrl, name);
+        return BuildPageJson(pdl, ads, dividers, headers, fillers,
+            adsBaseUrl, headersBaseUrl, fillersBaseUrl, folioBaseUrl, name);
     }
 
     // Build when you already have the parsed PDL data
@@ -94,10 +100,15 @@ public static class JsonBuilder
         IEnumerable<Divider> dividers,
         IEnumerable<Header> headers,
         IEnumerable<Filler> fillers,
-        string pdfBaseUrl,
-        string previewBaseUrl,
+        string adsBaseUrl,
+        string headersBaseUrl,
+        string fillersBaseUrl,
+        string folioBaseUrl,
         string name = "jfm-ad-ingest")
     {
+        var headersBase = string.IsNullOrWhiteSpace(headersBaseUrl) ? adsBaseUrl : headersBaseUrl;
+        var fillersBase = string.IsNullOrWhiteSpace(fillersBaseUrl) ? adsBaseUrl : fillersBaseUrl;
+
         string productName = pdl.zone ?? "";
         string datePart = (pdl.publishDate ?? "").Length >= 10 ? pdl.publishDate.Substring(0, 10) : "";
         string editionName = (productName ?? "").ToLowerInvariant() + "-" + datePart;
@@ -105,6 +116,13 @@ public static class JsonBuilder
 
         string pageId = (pdl.section ?? "") + pdl.page.ToString(CultureInfo.InvariantCulture);
         string template = string.IsNullOrEmpty(pdl.folio) ? "MPP" : pdl.folio;
+
+        // Build folio pdf url (only if we have a folioKey and base)
+        string folioPdfUrl = null;
+        if (!string.IsNullOrWhiteSpace(pdl.folioKey) && !string.IsNullOrWhiteSpace(folioBaseUrl))
+        {
+            folioPdfUrl = CombineUrl(folioBaseUrl, ChangeExtension(pdl.folioKey, ".pdf"));
+        }
 
         var sb = new StringBuilder();
 
@@ -128,9 +146,14 @@ public static class JsonBuilder
             jw.WritePropertyName("id"); jw.WriteValue(pageId);
             jw.WritePropertyName("template"); jw.WriteValue(template);
 
-            // properties (after template) — from PDL folioText & folioTextSize
+            // properties (after template)
             jw.WritePropertyName("properties");
             jw.WriteStartObject();
+
+            // NEW: folio + folioPdfUrl before folioText/folioTextSize
+            jw.WritePropertyName("folio"); jw.WriteValue(pdl.folioKey ?? "");
+            jw.WritePropertyName("folioPdfUrl"); jw.WriteValue(folioPdfUrl ?? "");
+
             jw.WritePropertyName("folioText"); jw.WriteValue(pdl.folioText ?? "");
             jw.WritePropertyName("folioTextSize"); jw.WriteValue(string.IsNullOrEmpty(pdl.folioTextSize) ? "small" : pdl.folioTextSize);
             jw.WriteEndObject();
@@ -147,8 +170,8 @@ public static class JsonBuilder
                 foreach (var ad in ads)
                 {
                     var id = MakeIdFromAd(ad);
-                    var pdfUrl = CombineUrl(pdfBaseUrl, ChangeExtension(id, ".pdf"));
-                    var previewUrl = CombineUrl(previewBaseUrl, ChangeExtension(id, ".jpg"));
+                    var pdfUrl = CombineUrl(adsBaseUrl, ChangeExtension(id, ".pdf"));
+                    var previewUrl = CombineUrl(adsBaseUrl, ChangeExtension(id, ".jpg"));
                     var readyBool = ToBool(ad.adReady);
 
                     jw.WriteStartObject();
@@ -178,8 +201,67 @@ public static class JsonBuilder
             }
             jw.WriteEndArray(); // ads
 
+            // pdfs (headers + fillers)
+            jw.WritePropertyName("pdfs");
+            jw.WriteStartArray();
+            if (headers != null)
+            {
+                foreach (var h in headers)
+                {
+                    var id = SafeFileName(h.file);
+                    var baseName = Path.GetFileNameWithoutExtension(id ?? "") ?? "";
+                    var pdfUrl = CombineUrl(headersBase, ChangeExtension(id, ".pdf"));
+                    var previewUrl = CombineUrl(headersBase, ChangeExtension(id, ".jpg"));
+
+                    jw.WriteStartObject();
+                    jw.WritePropertyName("id"); jw.WriteValue(id);
+                    jw.WritePropertyName("title"); jw.WriteValue(baseName);
+                    jw.WritePropertyName("pdfUrl"); jw.WriteValue(pdfUrl);
+                    jw.WritePropertyName("previewUrl"); jw.WriteValue(previewUrl);
+                    jw.WritePropertyName("ready"); jw.WriteValue(true);
+
+                    jw.WritePropertyName("placement");
+                    jw.WriteStartObject();
+                    jw.WritePropertyName("x"); jw.WriteValue(h.x);
+                    jw.WritePropertyName("y"); jw.WriteValue(h.y);
+                    jw.WritePropertyName("width"); jw.WriteValue(h.width);
+                    jw.WritePropertyName("height"); jw.WriteValue(h.height);
+                    jw.WriteEndObject();
+
+                    jw.WriteEndObject();
+                }
+            }
+            if (fillers != null)
+            {
+                foreach (var f in fillers)
+                {
+                    var id = SafeFileName(f.file);
+                    var baseName = Path.GetFileNameWithoutExtension(id ?? "") ?? "";
+                    var pdfUrl = CombineUrl(fillersBase, ChangeExtension(id, ".pdf"));
+                    var previewUrl = CombineUrl(fillersBase, ChangeExtension(id, ".jpg"));
+
+                    jw.WriteStartObject();
+                    jw.WritePropertyName("id"); jw.WriteValue(id);
+                    jw.WritePropertyName("title"); jw.WriteValue(baseName);
+                    jw.WritePropertyName("pdfUrl"); jw.WriteValue(pdfUrl);
+                    jw.WritePropertyName("previewUrl"); jw.WriteValue(previewUrl);
+                    jw.WritePropertyName("ready"); jw.WriteValue(true);
+
+                    jw.WritePropertyName("placement");
+                    jw.WriteStartObject();
+                    jw.WritePropertyName("x"); jw.WriteValue(f.x);
+                    jw.WritePropertyName("y"); jw.WriteValue(f.y);
+                    jw.WritePropertyName("width"); jw.WriteValue(f.width);
+                    jw.WritePropertyName("height"); jw.WriteValue(f.height);
+                    jw.WriteEndObject();
+
+                    jw.WriteEndObject();
+                }
+            }
+            jw.WriteEndArray(); // pdfs
+
             // Dividers
-            jw.WritePropertyName("dividers"); // Dividers
+            jw.WritePropertyName("dividers");
             jw.WriteStartArray();
             if (dividers != null)
             {
@@ -190,44 +272,6 @@ public static class JsonBuilder
                     jw.WritePropertyName("y"); jw.WriteValue(d.y);
                     jw.WritePropertyName("x2"); jw.WriteValue(d.x2);
                     jw.WritePropertyName("y2"); jw.WriteValue(d.y2);
-                    jw.WriteEndObject();
-                }
-            }
-            jw.WriteEndArray();
-
-            // Headers
-            jw.WritePropertyName("headers"); // Headers
-            jw.WriteStartArray();
-            if (headers != null)
-            {
-                foreach (var h in headers)
-                {
-                    jw.WriteStartObject();
-                    jw.WritePropertyName("file"); jw.WriteValue(h.file ?? "");
-                    jw.WritePropertyName("imageFile"); jw.WriteValue(h.imageFile ?? "");
-                    jw.WritePropertyName("x"); jw.WriteValue(h.x);
-                    jw.WritePropertyName("y"); jw.WriteValue(h.y);
-                    jw.WritePropertyName("width"); jw.WriteValue(h.width);
-                    jw.WritePropertyName("height"); jw.WriteValue(h.height);
-                    jw.WriteEndObject();
-                }
-            }
-            jw.WriteEndArray();
-
-            // Fillers
-            jw.WritePropertyName("fillers"); // Fillers
-            jw.WriteStartArray();
-            if (fillers != null)
-            {
-                foreach (var f in fillers)
-                {
-                    jw.WriteStartObject();
-                    jw.WritePropertyName("file"); jw.WriteValue(f.file ?? "");
-                    jw.WritePropertyName("imageFile"); jw.WriteValue(f.imageFile ?? "");
-                    jw.WritePropertyName("x"); jw.WriteValue(f.x);
-                    jw.WritePropertyName("y"); jw.WriteValue(f.y);
-                    jw.WritePropertyName("width"); jw.WriteValue(f.width);
-                    jw.WritePropertyName("height"); jw.WriteValue(f.height);
                     jw.WriteEndObject();
                 }
             }
@@ -274,7 +318,7 @@ public static class JsonBuilder
         // Header line (tab-separated)
         var header = lines[0].Split('\t');
         string dateRaw = GetField(header, "I");     // yyyymmdd
-        string rawFolioKey = GetField(header, "T");     // folio key
+        string rawFolioKey = GetField(header, "T");     // folio key (RAW)
         string zone = GetField(header, "ZONE");  // product code
 
         var year = int.Parse(dateRaw.Substring(0, 4), CultureInfo.InvariantCulture);
@@ -283,7 +327,7 @@ public static class JsonBuilder
         var d = new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
         string publishDateIso = d.ToString("yyyy-MM-dd'T'HH:mm:ss.000'Z'", CultureInfo.InvariantCulture);
 
-        // Section/page derived from filename (same as your earlier convention)
+        // Section/page derived from filename
         var fileOnly = Path.GetFileName(pdlFile) ?? "";
         string section = fileOnly.Length >= 11 ? fileOnly.Substring(10, 1) : "";
         int page = 0;
@@ -316,12 +360,12 @@ public static class JsonBuilder
             publishDate = publishDateIso,
             section = section,
             page = page,
-            folio = string.IsNullOrEmpty(mappedFolio) ? "MPP" : mappedFolio,
+            folioKey = rawFolioKey ?? "",                 // RAW for "properties.folio"
+            folio = string.IsNullOrEmpty(mappedFolio) ? "MPP" : mappedFolio, // mapped -> "template"
             folioText = folioText ?? "",
             folioTextSize = string.IsNullOrEmpty(folioTextSize) ? "small" : folioTextSize
         };
 
-        // Remove header to iterate content
         if (lines.Count > 0) lines.RemoveAt(0);
 
         ads = new List<Ad>();
@@ -390,13 +434,13 @@ public static class JsonBuilder
                 {
                     x = xMm,
                     y = yMm,
-                    x2 = wMm,  // matches your previous mapping (dX -> x2, dY -> y2)
+                    x2 = wMm,  // dX -> x2, dY -> y2
                     y2 = hMm
                 });
             }
             else if (typeToken == "HEADLINE")
             {
-                // ----- Headers -----
+                // ----- Headers -> pdfs -----
                 var filePath = GetField(parts, "File");
                 var fileName = Path.GetFileName(filePath ?? "");
                 var baseName = Path.GetFileNameWithoutExtension(fileName ?? "");
@@ -413,7 +457,7 @@ public static class JsonBuilder
             }
             else if (typeToken == "FILLER")
             {
-                // ----- Fillers -----
+                // ----- Fillers -> pdfs -----
                 var filePath = GetField(parts, "File");
                 var fileName = Path.GetFileName(filePath ?? "");
                 var baseName = Path.GetFileNameWithoutExtension(fileName ?? "");
@@ -472,14 +516,29 @@ public static class JsonBuilder
     {
         if (string.IsNullOrEmpty(baseUrl)) return tail ?? "";
         if (string.IsNullOrEmpty(tail)) return baseUrl;
+
+        baseUrl = baseUrl.Replace('\\', '/');
+        tail = tail.Replace('\\', '/');
+
         if (!baseUrl.EndsWith("/")) baseUrl += "/";
         return baseUrl + tail.TrimStart('/');
+    }
+
+    private static string SafeFileName(string pathLike)
+    {
+        if (string.IsNullOrEmpty(pathLike)) return "";
+        var name = Path.GetFileName(pathLike);
+        return string.IsNullOrEmpty(name) ? pathLike : name;
     }
 
     private static bool ToBool(string value)
     {
         if (string.IsNullOrEmpty(value)) return false;
+        // Accept "1"/"0"
         if (string.Equals(value, "1", StringComparison.OrdinalIgnoreCase)) return true;
+        if (string.Equals(value, "0", StringComparison.OrdinalIgnoreCase)) return false;
+
+        // Accept "true"/"false"
         bool b;
         return bool.TryParse(value, out b) ? b : false;
     }
