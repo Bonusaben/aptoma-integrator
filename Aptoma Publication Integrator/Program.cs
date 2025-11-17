@@ -116,14 +116,22 @@ namespace Aptoma_Publication_Integrator
             FolioJsonHandler.LoadTemplateMap(TEMPLATEFILE);
             FolioJsonHandler.LoadFolioTextMap(FOLIOFILE);
 
-            StartPolling();
-            Aptoma.Init();
+            //StartPolling();
+            //Aptoma.Init();
 
+            List<decimal> decimals = GetPageMarginInfo("FST");
+            Console.WriteLine("FST:");
+            Console.WriteLine("Left margin: "+decimals[0]);
+            Console.WriteLine("Top margin: " + decimals[1]);
 
+            decimals = GetPageMarginInfo("T04");
+            Console.WriteLine("T04:");
+            Console.WriteLine("Left margin: " + decimals[0]);
+            Console.WriteLine("Top margin: " + decimals[1]);
 
             //FolioJsonHandler.GetFolioMapping("FST","FST_1Sek_Side2_V");
             //FolioJsonHandler.GetFolioText("FST_1Sek_Side2_V");
-            
+
 
             if (SAVEOUTPUT)
             {
@@ -1199,6 +1207,47 @@ namespace Aptoma_Publication_Integrator
 
             return sqlFormattedDate;
             //return "2021-01-20";
+        }
+
+        static List<decimal> GetPageMarginInfo(string productCode)
+        {
+            var margins = new List<decimal>();
+
+            const string query = @"
+            SELECT PA_MARG_I, PA_MARG_T
+            FROM F_Page
+            WHERE PA_PRODCODE = :ProductCode";
+
+            try
+            {
+                using (var con = new OracleConnection(CONNECTIONSTRING))
+                using (var command = new OracleCommand(query, con))
+                {
+                    command.Parameters.Add(":ProductCode", OracleDbType.Varchar2).Value = productCode;
+
+                    con.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            // 0 = PA_MARG_I (inner)
+                            if (!reader.IsDBNull(0))
+                                margins.Add(reader.GetDecimal(0));
+
+                            // 1 = PA_MARG_T (top)
+                            if (!reader.IsDBNull(1))
+                                margins.Add(reader.GetDecimal(1));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in GetPageMarginInfo: " + ex.Message);
+            }
+
+            return margins;
         }
     }
 }
