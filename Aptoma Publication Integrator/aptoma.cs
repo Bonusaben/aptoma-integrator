@@ -131,7 +131,7 @@ namespace Aptoma_Publication_Integrator
 
         public static string[] AptomaPost(string url, Dictionary<string, string> headers, KeyValuePair<string, string> requestBodyParameter)
         {
-            Program.Log("Posting to Aptoma url: " + url);
+            //Program.Log("Posting to Aptoma url: " + url);
 
             var result = new string[2];
 
@@ -149,15 +149,15 @@ namespace Aptoma_Publication_Integrator
 
             if (headers != null)
             {
-                Program.Log("Headers:");
+                //Program.Log("Headers:");
                 foreach (var header in headers)
                 {
-                    Program.Log(header.Key + " - " + header.Value);
+                    //Program.Log(header.Key + " - " + header.Value);
                     request.AddHeader(header.Key, header.Value);
                 }
             }
 
-            Program.Log("Parameters: " + requestBodyParameter.Key + " - " + requestBodyParameter.Value);
+            //Program.Log("Parameters: " + requestBodyParameter.Key + " - " + requestBodyParameter.Value);
 
             var contentTypeHeader = headers != null && headers.TryGetValue("Content-Type", out var ct) ? ct : null;
             if (string.Equals(contentTypeHeader, "application/json", StringComparison.OrdinalIgnoreCase) ||
@@ -247,12 +247,12 @@ namespace Aptoma_Publication_Integrator
 
             RestResponse resp = await client.ExecuteAsync(req);
 
-            Console.WriteLine("StatusCode: " + (int)resp.StatusCode);
+            //Console.WriteLine("StatusCode: " + (int)resp.StatusCode);
             Console.WriteLine("ResponseStatus: " + resp.ResponseStatus);   // Completed, Error, TimedOut, Aborted
-            Console.WriteLine("ErrorMessage: " + resp.ErrorMessage);
-            Console.WriteLine("ErrorException: " + resp.ErrorException);
-            Console.WriteLine("Content length: " + (resp.Content?.Length ?? 0));
-            Console.WriteLine("Raw Content: " + resp.Content);
+            //Console.WriteLine("ErrorMessage: " + resp.ErrorMessage);
+            //Console.WriteLine("ErrorException: " + resp.ErrorException);
+            //Console.WriteLine("Content length: " + (resp.Content?.Length ?? 0));
+            //Console.WriteLine("Raw Content: " + resp.Content);
         }
     }
 }

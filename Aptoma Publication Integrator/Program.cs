@@ -116,9 +116,10 @@ namespace Aptoma_Publication_Integrator
             FolioJsonHandler.LoadTemplateMap(TEMPLATEFILE);
             FolioJsonHandler.LoadFolioTextMap(FOLIOFILE);
 
-            //StartPolling();
-            //Aptoma.Init();
+            StartPolling();
+            Aptoma.Init();
 
+            /*
             List<decimal> decimals = GetPageMarginInfo("FST");
             Console.WriteLine("FST:");
             Console.WriteLine("Left margin: "+decimals[0]);
@@ -128,6 +129,7 @@ namespace Aptoma_Publication_Integrator
             Console.WriteLine("T04:");
             Console.WriteLine("Left margin: " + decimals[0]);
             Console.WriteLine("Top margin: " + decimals[1]);
+            */
 
             //FolioJsonHandler.GetFolioMapping("FST","FST_1Sek_Side2_V");
             //FolioJsonHandler.GetFolioText("FST_1Sek_Side2_V");
@@ -1209,7 +1211,7 @@ namespace Aptoma_Publication_Integrator
             //return "2021-01-20";
         }
 
-        static List<decimal> GetPageMarginInfo(string productCode)
+        public static List<decimal> GetPageMarginInfo(string productCode)
         {
             var margins = new List<decimal>();
 

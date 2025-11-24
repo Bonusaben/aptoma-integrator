@@ -117,6 +117,8 @@ public static class JsonBuilder
         string pageId = (pdl.section ?? "") + pdl.page.ToString(CultureInfo.InvariantCulture);
         string template = string.IsNullOrEmpty(pdl.folio) ? "MPP" : pdl.folio;
 
+        decimal marginAdjust = Program.GetPageMarginInfo(productName)[0];
+
         // Build folio pdf url (only if we have a folioKey and base)
         string folioPdfUrl = null;
         if (!string.IsNullOrWhiteSpace(pdl.folioKey) && !string.IsNullOrWhiteSpace(folioBaseUrl))
@@ -183,7 +185,7 @@ public static class JsonBuilder
 
                     jw.WritePropertyName("placement");
                     jw.WriteStartObject();
-                    jw.WritePropertyName("x"); jw.WriteValue(ad.x);
+                    jw.WritePropertyName("x"); jw.WriteValue(((decimal)ad.x) - marginAdjust);
                     jw.WritePropertyName("y"); jw.WriteValue(ad.y);
                     jw.WritePropertyName("width"); jw.WriteValue(ad.width);
                     jw.WritePropertyName("height"); jw.WriteValue(ad.height);
@@ -222,7 +224,7 @@ public static class JsonBuilder
 
                     jw.WritePropertyName("placement");
                     jw.WriteStartObject();
-                    jw.WritePropertyName("x"); jw.WriteValue(h.x);
+                    jw.WritePropertyName("x"); jw.WriteValue(((decimal)h.x)-marginAdjust);
                     jw.WritePropertyName("y"); jw.WriteValue(h.y);
                     jw.WritePropertyName("width"); jw.WriteValue(h.width);
                     jw.WritePropertyName("height"); jw.WriteValue(h.height);
@@ -249,7 +251,7 @@ public static class JsonBuilder
 
                     jw.WritePropertyName("placement");
                     jw.WriteStartObject();
-                    jw.WritePropertyName("x"); jw.WriteValue(f.x);
+                    jw.WritePropertyName("x"); jw.WriteValue(((decimal)f.x)-marginAdjust);
                     jw.WritePropertyName("y"); jw.WriteValue(f.y);
                     jw.WritePropertyName("width"); jw.WriteValue(f.width);
                     jw.WritePropertyName("height"); jw.WriteValue(f.height);
